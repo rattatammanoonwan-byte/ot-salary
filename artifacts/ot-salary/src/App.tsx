@@ -107,8 +107,6 @@ function AuthPage({ mode }: { mode: "sign-in" | "sign-up" }) {
                     width: "100%",
                   },
                   header: { display: "none" },
-                  dividerRow: { display: "none" },
-                  form: { display: "none" },
                   footerAction: { display: "none" },
                   footer: { display: "none" },
                   socialButtonsBlockButton: { width: "100%" },
