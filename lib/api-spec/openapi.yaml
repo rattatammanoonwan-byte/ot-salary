@@ -1,22 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: OT & Salary Calculator API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: settings
+    description: User salary settings
+  - name: ot
+    description: OT entries
+  - name: summary
+    description: Summary and calculations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +28,177 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get user salary settings
+      responses:
+        "200":
+          description: Settings retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalarySettings"
+        "404":
+          description: Settings not found
+    put:
+      operationId: upsertSettings
+      tags: [settings]
+      summary: Create or update salary settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalarySettingsInput"
+      responses:
+        "200":
+          description: Settings saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalarySettings"
+
+  /ot-entries:
+    get:
+      operationId: listOtEntries
+      tags: [ot]
+      summary: List OT entries
+      parameters:
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filter by month (YYYY-MM)
+      responses:
+        "200":
+          description: OT entries list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OtEntry"
+    post:
+      operationId: createOtEntry
+      tags: [ot]
+      summary: Create a new OT entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtEntry"
+
+  /ot-entries/{id}:
+    get:
+      operationId: getOtEntry
+      tags: [ot]
+      summary: Get OT entry by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OT entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtEntry"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOtEntry
+      tags: [ot]
+      summary: Update OT entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtEntryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtEntry"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteOtEntry
+      tags: [ot]
+      summary: Delete OT entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /summary:
+    get:
+      operationId: getMonthlySummary
+      tags: [summary]
+      summary: Get monthly salary summary with OT breakdown
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Month to summarize (YYYY-MM)
+      responses:
+        "200":
+          description: Monthly summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlySummary"
+
+  /summary/yearly:
+    get:
+      operationId: getYearlySummary
+      tags: [summary]
+      summary: Get yearly OT and salary totals
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Year (YYYY)
+      responses:
+        "200":
+          description: Yearly summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YearlySummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +209,166 @@ components:
       required:
         - status
 
+    SalarySettings:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        baseSalary:
+          type: number
+          description: Monthly base salary in THB
+        otRate:
+          type: number
+          description: OT rate multiplier (e.g. 1.5 or 3.0)
+        hoursPerDay:
+          type: number
+          description: Standard working hours per day (e.g. 8)
+        workingDaysPerMonth:
+          type: number
+          description: Standard working days per month (e.g. 26)
+        updatedAt:
+          type: string
+      required:
+        - id
+        - userId
+        - baseSalary
+        - otRate
+        - hoursPerDay
+        - workingDaysPerMonth
+        - updatedAt
+
+    SalarySettingsInput:
+      type: object
+      properties:
+        baseSalary:
+          type: number
+        otRate:
+          type: number
+        hoursPerDay:
+          type: number
+        workingDaysPerMonth:
+          type: number
+      required:
+        - baseSalary
+        - otRate
+        - hoursPerDay
+        - workingDaysPerMonth
+
+    OtEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        date:
+          type: string
+          description: Date of OT (YYYY-MM-DD)
+        hours:
+          type: number
+          description: Number of OT hours
+        otType:
+          type: string
+          description: "Type: weekday, weekend, holiday"
+        note:
+          type: ["string", "null"]
+        otPay:
+          type: number
+          description: Calculated OT pay for this entry
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - date
+        - hours
+        - otType
+        - otPay
+        - createdAt
+
+    OtEntryInput:
+      type: object
+      properties:
+        date:
+          type: string
+        hours:
+          type: number
+        otType:
+          type: string
+        note:
+          type: string
+      required:
+        - date
+        - hours
+        - otType
+
+    OtEntryUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+        hours:
+          type: number
+        otType:
+          type: string
+        note:
+          type: ["string", "null"]
+
+    MonthlySummary:
+      type: object
+      properties:
+        month:
+          type: string
+        baseSalary:
+          type: number
+        totalOtHours:
+          type: number
+        totalOtPay:
+          type: number
+        totalSalary:
+          type: number
+        weekdayOtHours:
+          type: number
+        weekendOtHours:
+          type: number
+        holidayOtHours:
+          type: number
+        entriesCount:
+          type: integer
+      required:
+        - month
+        - baseSalary
+        - totalOtHours
+        - totalOtPay
+        - totalSalary
+        - weekdayOtHours
+        - weekendOtHours
+        - holidayOtHours
+        - entriesCount
+
+    YearlySummary:
+      type: object
+      properties:
+        year:
+          type: string
+        totalOtHours:
+          type: number
+        totalOtPay:
+          type: number
+        totalBaseSalary:
+          type: number
+        totalSalary:
+          type: number
+        monthlyBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlySummary"
+      required:
+        - year
+        - totalOtHours
+        - totalOtPay
+        - totalBaseSalary
+        - totalSalary
+        - monthlyBreakdown
