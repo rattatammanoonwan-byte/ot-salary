@@ -1,11 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { Home, List, Settings as SettingsIcon, LogOut, Moon, Sun, Menu } from "lucide-react";
+import { Home, List, Settings as SettingsIcon, LogOut, Moon, Sun, Menu, CalendarDays } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
+  { href: "/calendar", label: "ตารางกะ", icon: CalendarDays },
   { href: "/dashboard", label: "ภาพรวม", icon: Home },
   { href: "/entries", label: "บันทึก OT", icon: List },
   { href: "/settings", label: "ตั้งค่า", icon: SettingsIcon },

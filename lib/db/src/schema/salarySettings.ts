@@ -9,6 +9,7 @@ export const salarySettingsTable = pgTable("salary_settings", {
   otRate: real("ot_rate").notNull().default(1.5),
   hoursPerDay: real("hours_per_day").notNull().default(8),
   workingDaysPerMonth: real("working_days_per_month").notNull().default(26),
+  employmentStartDate: text("employment_start_date"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

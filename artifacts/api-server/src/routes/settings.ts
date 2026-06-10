@@ -12,7 +12,21 @@ const settingsInputSchema = z.object({
   otRate: z.number().positive(),
   hoursPerDay: z.number().positive(),
   workingDaysPerMonth: z.number().positive(),
+  employmentStartDate: z.string().nullable().optional(),
 });
+
+function formatRow(s: typeof salarySettingsTable.$inferSelect) {
+  return {
+    id: s.id,
+    userId: s.userId,
+    baseSalary: s.baseSalary,
+    otRate: s.otRate,
+    hoursPerDay: s.hoursPerDay,
+    workingDaysPerMonth: s.workingDaysPerMonth,
+    employmentStartDate: s.employmentStartDate ?? null,
+    updatedAt: s.updatedAt.toISOString(),
+  };
+}
 
 router.get("/", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
@@ -27,16 +41,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     return res.status(404).json({ error: "Settings not found" });
   }
 
-  const s = rows[0];
-  return res.json({
-    id: s.id,
-    userId: s.userId,
-    baseSalary: s.baseSalary,
-    otRate: s.otRate,
-    hoursPerDay: s.hoursPerDay,
-    workingDaysPerMonth: s.workingDaysPerMonth,
-    updatedAt: s.updatedAt.toISOString(),
-  });
+  return res.json(formatRow(rows[0]));
 });
 
 router.put("/", async (req: AuthRequest, res: Response) => {
@@ -47,7 +52,7 @@ router.put("/", async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ error: "Invalid input" });
   }
 
-  const { baseSalary, otRate, hoursPerDay, workingDaysPerMonth } = parsed.data;
+  const { baseSalary, otRate, hoursPerDay, workingDaysPerMonth, employmentStartDate } = parsed.data;
 
   const existing = await db
     .select()
@@ -59,27 +64,34 @@ router.put("/", async (req: AuthRequest, res: Response) => {
   if (existing.length > 0) {
     const updated = await db
       .update(salarySettingsTable)
-      .set({ baseSalary, otRate, hoursPerDay, workingDaysPerMonth, updatedAt: new Date() })
+      .set({
+        baseSalary,
+        otRate,
+        hoursPerDay,
+        workingDaysPerMonth,
+        employmentStartDate: employmentStartDate ?? null,
+        updatedAt: new Date(),
+      })
       .where(eq(salarySettingsTable.userId, userId))
       .returning();
     row = updated[0];
   } else {
     const inserted = await db
       .insert(salarySettingsTable)
-      .values({ userId, baseSalary, otRate, hoursPerDay, workingDaysPerMonth, updatedAt: new Date() })
+      .values({
+        userId,
+        baseSalary,
+        otRate,
+        hoursPerDay,
+        workingDaysPerMonth,
+        employmentStartDate: employmentStartDate ?? null,
+        updatedAt: new Date(),
+      })
       .returning();
     row = inserted[0];
   }
 
-  return res.json({
-    id: row.id,
-    userId: row.userId,
-    baseSalary: row.baseSalary,
-    otRate: row.otRate,
-    hoursPerDay: row.hoursPerDay,
-    workingDaysPerMonth: row.workingDaysPerMonth,
-    updatedAt: row.updatedAt.toISOString(),
-  });
+  return res.json(formatRow(row));
 });
 
 export default router;

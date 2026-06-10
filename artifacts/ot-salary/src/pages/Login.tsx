@@ -30,7 +30,7 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "เข้าสู่ระบบไม่สำเร็จ");
       login(data.token, data.user);
-      setLocation("/dashboard");
+      setLocation("/calendar");
     } catch (err: any) {
       toast({ title: "ไม่สำเร็จ", description: err.message, variant: "destructive" });
     } finally {

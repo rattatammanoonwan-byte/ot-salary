@@ -9,6 +9,7 @@ import Entries from "./pages/Entries";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/not-found";
 import Login from "./pages/Login";
+import Calendar from "./pages/Calendar";
 import Shell from "./components/layout/Shell";
 
 const queryClient = new QueryClient();
@@ -26,7 +27,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
 function HomeRedirect() {
   const { token } = useAuth();
-  return token ? <Redirect to="/dashboard" /> : <Redirect to="/login" />;
+  return token ? <Redirect to="/calendar" /> : <Redirect to="/login" />;
 }
 
 function AppRoutes() {
@@ -34,6 +35,9 @@ function AppRoutes() {
     <Switch>
       <Route path="/" component={HomeRedirect} />
       <Route path="/login" component={Login} />
+      <Route path="/calendar">
+        <ProtectedRoute component={Calendar} />
+      </Route>
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
       </Route>
