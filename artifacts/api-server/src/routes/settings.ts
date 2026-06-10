@@ -1,10 +1,11 @@
-import { Router, type Request, type Response } from "express";
-import { getAuth } from "@clerk/express";
+import { Router, type Response } from "express";
+import { requireAuth, type AuthRequest } from "../middlewares/authMiddleware";
 import { db, salarySettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 const router = Router();
+router.use(requireAuth);
 
 const settingsInputSchema = z.object({
   baseSalary: z.number().positive(),
@@ -13,9 +14,8 @@ const settingsInputSchema = z.object({
   workingDaysPerMonth: z.number().positive(),
 });
 
-router.get("/", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+router.get("/", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
 
   const rows = await db
     .select()
@@ -39,9 +39,8 @@ router.get("/", async (req: Request, res: Response) => {
   });
 });
 
-router.put("/", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+router.put("/", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
 
   const parsed = settingsInputSchema.safeParse(req.body);
   if (!parsed.success) {

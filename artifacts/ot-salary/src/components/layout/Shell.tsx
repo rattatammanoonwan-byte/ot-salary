@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useClerk } from "@clerk/react";
+import { useAuth } from "@/context/AuthContext";
 import { Home, List, Settings as SettingsIcon, LogOut, Moon, Sun, Menu } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { signOut } = useClerk();
+  const { logout } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
@@ -64,7 +64,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 เปลี่ยนธีม
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 text-destructive" onClick={() => signOut({ redirectUrl: "/" })}>
+              <Button variant="outline" className="w-full justify-start gap-2 text-destructive" onClick={logout}>
                 <LogOut className="h-4 w-4" />
                 ออกจากระบบ
               </Button>
@@ -98,7 +98,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {theme === "dark" ? "โหมดสว่าง" : "โหมดมืด"}
           </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => signOut({ redirectUrl: "/" })}>
+          <Button variant="ghost" className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={logout}>
             <LogOut className="h-4 w-4" />
             ออกจากระบบ
           </Button>

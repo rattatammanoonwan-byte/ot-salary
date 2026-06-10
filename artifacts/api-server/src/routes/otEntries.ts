@@ -1,10 +1,11 @@
-import { Router, type Request, type Response } from "express";
-import { getAuth } from "@clerk/express";
+import { Router, type Response } from "express";
+import { requireAuth, type AuthRequest } from "../middlewares/authMiddleware";
 import { db, otEntriesTable, salarySettingsTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const router = Router();
+router.use(requireAuth);
 
 function calcOtPay(
   hours: number,
@@ -21,10 +22,8 @@ function calcOtPay(
   return parseFloat((hourlyRate * multiplier * hours).toFixed(2));
 }
 
-router.get("/", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.get("/", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const { month } = req.query as { month?: string };
 
   let query = db
@@ -58,9 +57,8 @@ router.get("/", async (req: Request, res: Response) => {
   );
 });
 
-router.post("/", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+router.post("/", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
 
   const schema = z.object({
     date: z.string(),
@@ -104,10 +102,8 @@ router.post("/", async (req: Request, res: Response) => {
   });
 });
 
-router.get("/:id", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.get("/:id", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const id = parseInt(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
@@ -132,10 +128,8 @@ router.get("/:id", async (req: Request, res: Response) => {
   });
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.patch("/:id", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const id = parseInt(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
@@ -159,7 +153,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
   const current = existing[0];
   const updates = parsed.data;
-
   const newHours = updates.hours ?? current.hours;
   const newOtType = updates.otType ?? current.otType;
 
@@ -200,10 +193,8 @@ router.patch("/:id", async (req: Request, res: Response) => {
   });
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.delete("/:id", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const id = parseInt(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 

@@ -1,9 +1,10 @@
-import { Router, type Request, type Response } from "express";
-import { getAuth } from "@clerk/express";
+import { Router, type Response } from "express";
+import { requireAuth, type AuthRequest } from "../middlewares/authMiddleware";
 import { db, otEntriesTable, salarySettingsTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 
 const router = Router();
+router.use(requireAuth);
 
 async function buildMonthlySummary(userId: string, month: string, baseSalary: number) {
   const rows = await db
@@ -43,10 +44,8 @@ async function buildMonthlySummary(userId: string, month: string, baseSalary: nu
   };
 }
 
-router.get("/", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.get("/", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const { month } = req.query as { month?: string };
   if (!month) return res.status(400).json({ error: "month is required" });
 
@@ -57,15 +56,12 @@ router.get("/", async (req: Request, res: Response) => {
     .limit(1);
 
   const baseSalary = settings.length > 0 ? settings[0].baseSalary : 0;
-
   const summary = await buildMonthlySummary(userId, month, baseSalary);
   return res.json(summary);
 });
 
-router.get("/yearly", async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+router.get("/yearly", async (req: AuthRequest, res: Response) => {
+  const userId = String(req.userId!);
   const { year } = req.query as { year?: string };
   if (!year) return res.status(400).json({ error: "year is required" });
 
