@@ -32,18 +32,92 @@ if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
 }
 
-function SignInPage() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
-  );
-}
+function AuthPage({ mode }: { mode: "sign-in" | "sign-up" }) {
+  const [, setLocation] = useLocation();
 
-function SignUpPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">โอทีเงินเดือน</h1>
+          <p className="text-sm text-muted-foreground">ติดตามโอทีและคำนวณเงินเดือนของคุณ</p>
+        </div>
+
+        <div className="flex rounded-lg border bg-muted/40 p-1 gap-1">
+          <button
+            onClick={() => setLocation("/sign-in")}
+            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
+              mode === "sign-in"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            เข้าสู่ระบบ
+          </button>
+          <button
+            onClick={() => setLocation("/sign-up")}
+            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
+              mode === "sign-up"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            สมัครสมาชิก
+          </button>
+        </div>
+
+        <div className="w-full">
+          {mode === "sign-in" ? (
+            <SignIn
+              routing="path"
+              path={`${basePath}/sign-in`}
+              signUpUrl={`${basePath}/sign-up`}
+              appearance={{
+                elements: {
+                  rootBox: { width: "100%" },
+                  card: {
+                    boxShadow: "none",
+                    border: "none",
+                    padding: 0,
+                    background: "transparent",
+                    width: "100%",
+                  },
+                  header: { display: "none" },
+                  dividerRow: { display: "none" },
+                  form: { display: "none" },
+                  footerAction: { display: "none" },
+                  footer: { display: "none" },
+                  socialButtonsBlockButton: { width: "100%" },
+                },
+              }}
+            />
+          ) : (
+            <SignUp
+              routing="path"
+              path={`${basePath}/sign-up`}
+              signInUrl={`${basePath}/sign-in`}
+              appearance={{
+                elements: {
+                  rootBox: { width: "100%" },
+                  card: {
+                    boxShadow: "none",
+                    border: "none",
+                    padding: 0,
+                    background: "transparent",
+                    width: "100%",
+                  },
+                  header: { display: "none" },
+                  dividerRow: { display: "none" },
+                  form: { display: "none" },
+                  footerAction: { display: "none" },
+                  footer: { display: "none" },
+                  socialButtonsBlockButton: { width: "100%" },
+                },
+              }}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -111,8 +185,8 @@ function ClerkProviderWithRoutes() {
         <ClerkQueryClientCacheInvalidator />
         <Switch>
           <Route path="/" component={HomeRedirect} />
-          <Route path="/sign-in/*?" component={SignInPage} />
-          <Route path="/sign-up/*?" component={SignUpPage} />
+          <Route path="/sign-in/*?">{() => <AuthPage mode="sign-in" />}</Route>
+          <Route path="/sign-up/*?">{() => <AuthPage mode="sign-up" />}</Route>
           <Route path="/dashboard">
             <ProtectedRoute component={Dashboard} />
           </Route>
