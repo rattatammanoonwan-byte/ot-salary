@@ -42,13 +42,15 @@ function formatDate(y: number, m: number, d: number) {
 /**
  * Calculates the shift schedule for every day in the target month.
  *
- * Cycle = 21 calendar days (repeats forever from employment start):
+ * Cycle = 28 calendar days (repeats forever from employment start):
  *   pos  0– 5  →  D  (6 day shift days)
  *   pos  6      →  S  (off)
  *   pos  7–12  →  D  (6 day shift days)
  *   pos  13     →  S  (off)
  *   pos  14–19  →  N  (6 night shift days)
  *   pos  20     →  S  (off)
+ *   pos  21–26  →  N  (6 night shift days)
+ *   pos  27     →  S  (off)
  *
  * Returns a map of dateStr → ShiftType for every day in the target month.
  */
@@ -65,13 +67,13 @@ function computeMonthAutoShifts(
   if (maxDiff < 0) return result; // entire month is before employment start
 
   for (let d = 0; d <= maxDiff; d++) {
-    const pos = d % 21;
+    const pos = d % 28;
 
     let shift: ShiftType;
-    if (pos === 6 || pos === 13 || pos === 20) {
+    if (pos === 6 || pos === 13 || pos === 20 || pos === 27) {
       shift = "S";
     } else if (pos >= 14) {
-      shift = "N"; // pos 14–19
+      shift = "N"; // pos 14–19 and 21–26
     } else {
       shift = "D"; // pos 0–5 and 7–12
     }
