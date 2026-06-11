@@ -39,14 +39,75 @@ function formatDate(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function getAutoShift(date: Date, startDate: Date): ShiftType {
-  const diffMs = date.getTime() - startDate.getTime();
-  const dayDiff = Math.floor(diffMs / 86400000);
-  if (dayDiff < 0) return "S";
-  const dayInCycle = dayDiff % 7;
-  if (dayInCycle === 6) return "S";
-  const workingDays = Math.floor(dayDiff / 7) * 6 + dayInCycle;
-  return workingDays % 28 < 14 ? "D" : "N";
+/**
+ * Simulates the shift schedule day-by-day from employment start date.
+ *
+ * Rules:
+ *  - 6 working days → 1 off day (S) repeating continuously
+ *  - Among working days: first 14 are D, next 14 are N, then repeat
+ *  - When switching N → D, insert 1 extra transition S day regardless of
+ *    where in the 6-on-1-off cycle we are (night shift ends 08:00 next day)
+ *
+ * Returns a map of dateStr → ShiftType for every day in the target month.
+ */
+function computeMonthAutoShifts(
+  startDate: Date,
+  year: number,
+  month: number,
+): Map<string, ShiftType> {
+  const result = new Map<string, ShiftType>();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const lastDay = new Date(year, month, daysInMonth);
+  const maxDiff = Math.floor((lastDay.getTime() - startDate.getTime()) / 86400000);
+
+  if (maxDiff < 0) return result; // entire month is before employment start
+
+  let weekCycle = 0;   // 0-5 = work day, 6 = regular off
+  let dPhase = true;   // true = D phase, false = N phase
+  let phaseWork = 0;   // working days counted in current phase
+  let transNext = false; // true = next calendar day is the N→D transition S
+
+  for (let d = 0; d <= maxDiff; d++) {
+    let shift: ShiftType;
+
+    if (transNext) {
+      // Forced transition off day (N → D switch)
+      shift = "S";
+      transNext = false;
+      dPhase = true;
+      phaseWork = 0;
+    } else if (weekCycle === 6) {
+      // Regular 6-on-1-off rest day
+      shift = "S";
+    } else {
+      // Working day
+      shift = dPhase ? "D" : "N";
+      phaseWork++;
+
+      if (dPhase && phaseWork === 14) {
+        // Completed 14 D days → switch to N
+        dPhase = false;
+        phaseWork = 0;
+      } else if (!dPhase && phaseWork === 14) {
+        // Completed 14 N days → schedule transition S next calendar day
+        transNext = true;
+        phaseWork = 0;
+        // dPhase will be set to true when transNext fires
+      }
+    }
+
+    // Always advance the 6-on-1-off week cycle (even on transition S days)
+    weekCycle = (weekCycle + 1) % 7;
+
+    // Store only days that fall in the target month
+    const dayMs = startDate.getTime() + d * 86400000;
+    const dayDate = new Date(dayMs);
+    if (dayDate.getFullYear() === year && dayDate.getMonth() === month) {
+      result.set(formatDate(year, month, dayDate.getDate()), shift);
+    }
+  }
+
+  return result;
 }
 
 const SHIFT_COLORS: Record<ShiftType, string> = {
@@ -118,12 +179,17 @@ export default function Calendar() {
 
   const startDate = employmentStartDate ? new Date(employmentStartDate + "T00:00:00") : null;
 
+  // Compute auto-schedule for the entire month in one simulation pass
+  const autoShiftMap = startDate
+    ? computeMonthAutoShifts(startDate, year, month)
+    : new Map<string, ShiftType>();
+
   function getDisplayShift(dateStr: string): { shift: ShiftType; isSaved: boolean } | null {
     const saved = shiftMap.get(dateStr);
     if (saved) return { shift: saved.shiftType as ShiftType, isSaved: true };
-    if (!startDate) return null;
-    const d = new Date(dateStr + "T00:00:00");
-    return { shift: getAutoShift(d, startDate), isSaved: false };
+    const auto = autoShiftMap.get(dateStr);
+    if (!auto) return null;
+    return { shift: auto, isSaved: false };
   }
 
   const firstDayOfMonth = new Date(year, month, 1).getDay();
