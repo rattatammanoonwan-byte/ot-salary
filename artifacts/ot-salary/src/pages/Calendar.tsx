@@ -171,8 +171,15 @@ export default function Calendar() {
   const startDate = employmentStartDate ? new Date(employmentStartDate + "T00:00:00") : null;
 
   // Compute auto-schedule for the entire month in one simulation pass
+  // คำนวณ autoShift ครอบคลุมทั้ง 2 เดือน เพื่อให้รอบ 21-20 ได้ข้อมูลครบ
+  const prevYear  = month === 0 ? year - 1 : year;
+  const prevMonth = month === 0 ? 11 : month - 1;
+
   const autoShiftMap = startDate
-    ? computeMonthAutoShifts(startDate, year, month)
+    ? new Map<string, ShiftType>([
+        ...computeMonthAutoShifts(startDate, prevYear, prevMonth),
+        ...computeMonthAutoShifts(startDate, year, month),
+      ])
     : new Map<string, ShiftType>();
 
   function getDisplayShift(dateStr: string): { shift: ShiftType; isSaved: boolean } | null {
@@ -192,18 +199,26 @@ export default function Calendar() {
   while (cells.length % 7 !== 0) cells.push(null);
 
   const summary = (() => {
-    let d = 0, n = 0, s = 0, ot = 0;
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = formatDate(year, month, day);
-      const info = getDisplayShift(dateStr);
-      if (!info) continue;
-      if (info.shift === "D") d++;
-      else if (info.shift === "N") n++;
-      else s++;
+    let work = 0, d = 0, n = 0, s = 0;
+
+    // คำนวณรอบเงินเดือน: 21 เดือนที่แล้ว → 20 เดือนนี้
+    const periodStart = new Date(year, month - 1, 21);
+    const periodEnd   = new Date(year, month, 20);
+
+    const current = new Date(periodStart);
+    while (current <= periodEnd) {
+      const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,"0")}-${String(current.getDate()).padStart(2,"0")}`;
       const saved = shiftMap.get(dateStr);
-      if (saved?.otHours) ot += saved.otHours;
+      const auto  = autoShiftMap.get(dateStr);
+      const shift = saved?.shiftType ?? auto;
+      if (shift === "D" || shift === "N") work++;
+      if (shift === "D" || shift === "DS" || shift === "DH") d++;
+      else if (shift === "N" || shift === "NS" || shift === "NH") n++;
+      else if (shift === "S") s++;
+      current.setDate(current.getDate() + 1);
     }
-    return { d, n, s, ot: parseFloat(ot.toFixed(2)) };
+
+    return { work, d, n, s };
   })();
 
   function openDialog(day: number) {
@@ -287,11 +302,10 @@ export default function Calendar() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
-          { label: "วันทำงาน", value: summary.d + summary.n, color: "text-foreground" },
+          { label: "วันทำงาน (รอบนี้)", value: summary.work, color: "text-foreground" },
           { label: "กะกลางวัน (D)", value: summary.d, color: "text-sky-600" },
           { label: "กะกลางคืน (N)", value: summary.n, color: "text-violet-600" },
           { label: "วันหยุด (S)", value: summary.s, color: "text-slate-500" },
-          { label: "OT รวม (ชม.)", value: summary.ot, color: "text-emerald-600" },
         ].map((card) => (
           <Card key={card.label} className="bg-card">
             <CardContent className="p-3">
@@ -485,19 +499,6 @@ export default function Calendar() {
             </div>
 
             {/* OT Hours */}
-            <div className="space-y-2">
-              <Label htmlFor="ot-hours">ชั่วโมง OT</Label>
-              <Input
-                id="ot-hours"
-                type="number"
-                min="0"
-                step="0.5"
-                placeholder="เช่น 2.5"
-                value={formOt}
-                onChange={(e) => setFormOt(e.target.value)}
-              />
-            </div>
-
             {/* Note */}
             <div className="space-y-2">
               <Label htmlFor="note">หมายเหตุ</Label>

@@ -19,8 +19,8 @@ const SPECIAL_OT_TYPES = ["NS", "DS", "NH", "DH"];
 function calcOtPay(hours: number, otType: string, baseSalary: number): number {
   const rate = baseSalary / 30 / 8;
   if (SPECIAL_OT_TYPES.includes(otType)) {
-    const base8  = Math.min(hours, 8) * 1.0 * rate;
-    const extra  = Math.max(0, hours - 8) * 3.0 * rate;
+    const base8 = Math.min(hours, 8) * 1.0 * rate;
+    const extra = Math.max(0, hours - 8) * 3.0 * rate;
     return parseFloat((base8 + extra).toFixed(2));
   }
   return parseFloat((hours * 1.5 * rate).toFixed(2));
@@ -39,10 +39,14 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   if (month) {
     // Pay period: 21st of previous month → 20th of pay month
     const [year, mon] = month.split("-").map(Number);
-    let prevYear = year, prevMon = mon - 1;
-    if (prevMon === 0) { prevMon = 12; prevYear--; }
+    let prevYear = year,
+      prevMon = mon - 1;
+    if (prevMon === 0) {
+      prevMon = 12;
+      prevYear--;
+    }
     const start = `${prevYear}-${String(prevMon).padStart(2, "0")}-21`;
-    const end   = `${year}-${String(mon).padStart(2, "0")}-20`;
+    const end = `${year}-${String(mon).padStart(2, "0")}-20`;
     query = query.where(
       and(
         eq(otEntriesTable.userId, userId),
@@ -74,7 +78,17 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     date: z.string(),
     hours: z.number().positive(),
-    otType: z.enum(["D", "N", "NS", "DS", "NH", "DH", "weekday", "weekend", "holiday"]),
+    otType: z.enum([
+      "D",
+      "N",
+      "NS",
+      "DS",
+      "NH",
+      "DH",
+      "weekday",
+      "weekend",
+      "holiday",
+    ]),
     note: z.string().optional(),
   });
 
@@ -115,7 +129,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
 
 router.get("/:id", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
   const rows = await db
@@ -141,13 +155,15 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
 
 router.patch("/:id", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
   const schema = z.object({
     date: z.string().optional(),
     hours: z.number().positive().optional(),
-    otType: z.enum(["D", "N", "NS", "DS", "NH", "DH", "weekday", "weekend", "holiday"]).optional(),
+    otType: z
+      .enum(["D", "N", "NS", "DS", "NH", "DH", "weekday", "weekend", "holiday"])
+      .optional(),
     note: z.string().nullable().optional(),
   });
 
@@ -160,7 +176,8 @@ router.patch("/:id", async (req: AuthRequest, res: Response) => {
     .where(and(eq(otEntriesTable.id, id), eq(otEntriesTable.userId, userId)))
     .limit(1);
 
-  if (existing.length === 0) return res.status(404).json({ error: "Not found" });
+  if (existing.length === 0)
+    return res.status(404).json({ error: "Not found" });
 
   const current = existing[0];
   const updates = parsed.data;
@@ -176,7 +193,7 @@ router.patch("/:id", async (req: AuthRequest, res: Response) => {
   let otPay = current.otPay;
   if (settings.length > 0) {
     const s = settings[0];
-    otPay = calcOtPay(newHours, newOtType, s.baseSalary, s.hoursPerDay, s.workingDaysPerMonth, s.otRate);
+    otPay = calcOtPay(newHours, newOtType, s.baseSalary);
   }
 
   const updated = await db
@@ -206,7 +223,7 @@ router.patch("/:id", async (req: AuthRequest, res: Response) => {
 
 router.delete("/:id", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
   await db

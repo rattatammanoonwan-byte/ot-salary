@@ -11,7 +11,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
   const { month } = req.query as { month?: string };
 
-  if (!month) return res.status(400).json({ error: "month is required (YYYY-MM)" });
+  if (!month)
+    return res.status(400).json({ error: "month is required (YYYY-MM)" });
 
   const rows = await db
     .select()
@@ -24,35 +25,44 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     )
     .orderBy(shiftsTable.workDate);
 
-  return res.json(rows.map((r) => ({
-    id: r.id,
-    workDate: r.workDate,
-    shiftType: r.shiftType,
-    otHours: r.otHours,
-    note: r.note,
-    createdAt: r.createdAt.toISOString(),
-  })));
+  return res.json(
+    rows.map((r) => ({
+      id: r.id,
+      workDate: r.workDate,
+      shiftType: r.shiftType,
+      otHours: r.otHours,
+      note: r.note,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  );
 });
 
 router.post("/", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
 
   const schema = z.object({
-    workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "workDate must be YYYY-MM-DD"),
-    shiftType: z.enum(["D", "N", "S"]),
+    workDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "workDate must be YYYY-MM-DD"),
+    shiftType: z.enum(["D", "N", "S", "DS", "NS", "DH", "NH"]),
     otHours: z.number().min(0).nullable().optional(),
     note: z.string().nullable().optional(),
   });
 
   const parsed = schema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
+  if (!parsed.success)
+    return res
+      .status(400)
+      .json({ error: "Invalid input", details: parsed.error.issues });
 
   const { workDate, shiftType, otHours, note } = parsed.data;
 
   const existing = await db
     .select()
     .from(shiftsTable)
-    .where(and(eq(shiftsTable.userId, userId), eq(shiftsTable.workDate, workDate)))
+    .where(
+      and(eq(shiftsTable.userId, userId), eq(shiftsTable.workDate, workDate)),
+    )
     .limit(1);
 
   let row;
@@ -60,13 +70,21 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     const updated = await db
       .update(shiftsTable)
       .set({ shiftType, otHours: otHours ?? null, note: note ?? null })
-      .where(and(eq(shiftsTable.userId, userId), eq(shiftsTable.workDate, workDate)))
+      .where(
+        and(eq(shiftsTable.userId, userId), eq(shiftsTable.workDate, workDate)),
+      )
       .returning();
     row = updated[0];
   } else {
     const inserted = await db
       .insert(shiftsTable)
-      .values({ userId, workDate, shiftType, otHours: otHours ?? null, note: note ?? null })
+      .values({
+        userId,
+        workDate,
+        shiftType,
+        otHours: otHours ?? null,
+        note: note ?? null,
+      })
       .returning();
     row = inserted[0];
   }
@@ -84,7 +102,8 @@ router.post("/", async (req: AuthRequest, res: Response) => {
 router.delete("/by-date", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
   const { date } = req.query as { date?: string };
-  if (!date) return res.status(400).json({ error: "date query param required" });
+  if (!date)
+    return res.status(400).json({ error: "date query param required" });
 
   await db
     .delete(shiftsTable)
