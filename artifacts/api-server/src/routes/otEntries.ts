@@ -7,19 +7,23 @@ import { z } from "zod";
 const router = Router();
 router.use(requireAuth);
 
-function calcOtPay(
-  hours: number,
-  otType: string,
-  baseSalary: number,
-  hoursPerDay: number,
-  workingDaysPerMonth: number,
-  otRate: number,
-): number {
-  const hourlyRate = baseSalary / (workingDaysPerMonth * hoursPerDay);
-  let multiplier = otRate;
-  if (otType === "holiday") multiplier = otRate * 2;
-  else if (otType === "weekend") multiplier = otRate * 1.5;
-  return parseFloat((hourlyRate * multiplier * hours).toFixed(2));
+/**
+ * OT types:
+ *   D / N                      → regular OT: hours × 1.5 × (salary/30/8)
+ *   NS / DS / NH / DH          → special holiday:
+ *                                  first 8h × 1.0 × rate + remaining × 3.0 × rate
+ *   weekday / weekend / holiday → legacy, treated as regular (× 1.5)
+ */
+const SPECIAL_OT_TYPES = ["NS", "DS", "NH", "DH"];
+
+function calcOtPay(hours: number, otType: string, baseSalary: number): number {
+  const rate = baseSalary / 30 / 8;
+  if (SPECIAL_OT_TYPES.includes(otType)) {
+    const base8  = Math.min(hours, 8) * 1.0 * rate;
+    const extra  = Math.max(0, hours - 8) * 3.0 * rate;
+    return parseFloat((base8 + extra).toFixed(2));
+  }
+  return parseFloat((hours * 1.5 * rate).toFixed(2));
 }
 
 router.get("/", async (req: AuthRequest, res: Response) => {
@@ -70,7 +74,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     date: z.string(),
     hours: z.number().positive(),
-    otType: z.enum(["weekday", "weekend", "holiday"]),
+    otType: z.enum(["D", "N", "NS", "DS", "NH", "DH", "weekday", "weekend", "holiday"]),
     note: z.string().optional(),
   });
 
@@ -88,7 +92,7 @@ router.post("/", async (req: AuthRequest, res: Response) => {
   let otPay = 0;
   if (settings.length > 0) {
     const s = settings[0];
-    otPay = calcOtPay(hours, otType, s.baseSalary, s.hoursPerDay, s.workingDaysPerMonth, s.otRate);
+    otPay = calcOtPay(hours, otType, s.baseSalary);
   }
 
   const inserted = await db
@@ -143,7 +147,7 @@ router.patch("/:id", async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     date: z.string().optional(),
     hours: z.number().positive().optional(),
-    otType: z.enum(["weekday", "weekend", "holiday"]).optional(),
+    otType: z.enum(["D", "N", "NS", "DS", "NH", "DH", "weekday", "weekend", "holiday"]).optional(),
     note: z.string().nullable().optional(),
   });
 

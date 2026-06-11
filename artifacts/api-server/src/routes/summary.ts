@@ -36,19 +36,39 @@ async function buildMonthlySummary(userId: string, month: string, baseSalary: nu
       ),
     );
 
+  const SPECIAL = ["NS", "DS", "NH", "DH"];
+  const hourlyRate = baseSalary / 30 / 8;
+
   let totalOtHours = 0;
   let totalOtPay = 0;
-  let weekdayOtHours = 0;
-  let weekendOtHours = 0;
-  let holidayOtHours = 0;
+  // Regular OT (D / N / legacy weekday/weekend/holiday) → × 1.5
+  let regularOtHours = 0;
+  let regularOtPay = 0;
+  // Special holiday — first 8h × 1.0
+  let holidayBase8Hours = 0;
+  let holidayBase8Pay = 0;
+  // Special holiday — beyond 8h × 3.0
+  let holidayExtraHours = 0;
+  let holidayExtraPay = 0;
 
   for (const r of rows) {
     totalOtHours += r.hours;
-    totalOtPay += r.otPay;
-    if (r.otType === "weekday") weekdayOtHours += r.hours;
-    else if (r.otType === "weekend") weekendOtHours += r.hours;
-    else if (r.otType === "holiday") holidayOtHours += r.hours;
+    totalOtPay   += r.otPay;
+
+    if (SPECIAL.includes(r.otType)) {
+      const b8 = Math.min(r.hours, 8);
+      const ex = Math.max(0, r.hours - 8);
+      holidayBase8Hours  += b8;
+      holidayBase8Pay    += b8 * hourlyRate;
+      holidayExtraHours  += ex;
+      holidayExtraPay    += ex * 3 * hourlyRate;
+    } else {
+      regularOtHours += r.hours;
+      regularOtPay   += r.otPay;
+    }
   }
+
+  const round = (n: number) => parseFloat(n.toFixed(2));
 
   return {
     month,
@@ -56,12 +76,15 @@ async function buildMonthlySummary(userId: string, month: string, baseSalary: nu
     periodEnd: end,
     payDate,
     baseSalary,
-    totalOtHours: parseFloat(totalOtHours.toFixed(2)),
-    totalOtPay: parseFloat(totalOtPay.toFixed(2)),
-    totalSalary: parseFloat((baseSalary + totalOtPay).toFixed(2)),
-    weekdayOtHours: parseFloat(weekdayOtHours.toFixed(2)),
-    weekendOtHours: parseFloat(weekendOtHours.toFixed(2)),
-    holidayOtHours: parseFloat(holidayOtHours.toFixed(2)),
+    totalOtHours:       round(totalOtHours),
+    totalOtPay:         round(totalOtPay),
+    totalSalary:        round(baseSalary + totalOtPay),
+    regularOtHours:     round(regularOtHours),
+    regularOtPay:       round(regularOtPay),
+    holidayBase8Hours:  round(holidayBase8Hours),
+    holidayBase8Pay:    round(holidayBase8Pay),
+    holidayExtraHours:  round(holidayExtraHours),
+    holidayExtraPay:    round(holidayExtraPay),
     entriesCount: rows.length,
   };
 }

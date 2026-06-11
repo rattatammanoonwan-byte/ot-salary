@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { formatTHB, formatOtType } from "@/lib/format";
-import { 
-  useListOtEntries, 
+import { formatTHB, formatOtType, isSpecialOtType } from "@/lib/format";
+import {
+  useListOtEntries,
   useDeleteOtEntry,
   getListOtEntriesQueryKey,
   getGetMonthlySummaryQueryKey,
-  getGetYearlySummaryQueryKey
+  getGetYearlySummaryQueryKey,
 } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit2, List as ListIcon, CalendarIcon, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,21 +52,20 @@ export default function Entries() {
           toast({ title: "ลบรายการสำเร็จ" });
           setEntryToDelete(null);
         },
-        onError: () => {
-          toast({ title: "เกิดข้อผิดพลาด", variant: "destructive" });
-        }
+        onError: () => toast({ title: "เกิดข้อผิดพลาด", variant: "destructive" }),
       }
     );
   };
 
-  const getOtTypeBadgeColor = (type: string) => {
-    switch(type) {
-      case 'weekday': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'weekend': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
-      case 'holiday': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+  function badgeClass(type: string) {
+    if (isSpecialOtType(type)) {
+      if (type === "DS" || type === "DH") return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
+      return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300";
     }
-  };
+    if (type === "D") return "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300";
+    if (type === "N") return "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300";
+    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -76,11 +75,11 @@ export default function Entries() {
           <p className="text-muted-foreground mt-1">ประวัติการทำล่วงเวลาของคุณ</p>
         </div>
         <div className="flex items-center gap-2">
-          <input 
-            type="month" 
+          <input
+            type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" /> <span>บันทึก OT</span>
@@ -119,20 +118,18 @@ export default function Entries() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-lg">{entry.date}</p>
-                        <Badge variant="secondary" className={`font-normal ${getOtTypeBadgeColor(entry.otType)}`}>
+                        <Badge variant="secondary" className={`font-normal ${badgeClass(entry.otType)}`}>
                           {formatOtType(entry.otType)}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
                         เวลาทำ: <span className="font-medium text-foreground">{entry.hours} ชม.</span>
-                        {entry.note ? ` • ${entry.note}` : ''}
+                        {entry.note ? ` • ${entry.note}` : ""}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pl-14 sm:pl-0">
-                    <div className="text-xl font-bold text-accent">
-                      +{formatTHB(entry.otPay)}
-                    </div>
+                    <div className="text-xl font-bold text-accent">+{formatTHB(entry.otPay)}</div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setEntryToEdit(entry)} className="h-8 w-8 text-muted-foreground hover:text-primary">
                         <Edit2 className="h-4 w-4" />
@@ -152,36 +149,24 @@ export default function Entries() {
               </div>
               <h3 className="text-lg font-medium text-foreground">ไม่มีข้อมูล</h3>
               <p className="text-muted-foreground mt-1 mb-6 max-w-sm mx-auto">
-                ยังไม่มีรายการทำล่วงเวลาในรอบนี้ เริ่มบันทึก OT เพื่อคำนวณรายได้ของคุณ
+                ยังไม่มีรายการทำล่วงเวลาในรอบนี้
               </p>
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                บันทึก OT ครั้งแรก
-              </Button>
+              <Button onClick={() => setIsAddDialogOpen(true)}>บันทึก OT ครั้งแรก</Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <OtEntryDialog 
-        open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen} 
-      />
-
+      <OtEntryDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
       {entryToEdit && (
-        <OtEntryDialog 
-          open={!!entryToEdit} 
-          onOpenChange={(open) => !open && setEntryToEdit(null)} 
-          entryToEdit={entryToEdit}
-        />
+        <OtEntryDialog open={!!entryToEdit} onOpenChange={(o) => !o && setEntryToEdit(null)} entryToEdit={entryToEdit} />
       )}
 
-      <AlertDialog open={!!entryToDelete} onOpenChange={(open) => !open && setEntryToDelete(null)}>
+      <AlertDialog open={!!entryToDelete} onOpenChange={(o) => !o && setEntryToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ยืนยันการลบ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              รายการนี้จะถูกลบอย่างถาวรและไม่สามารถกู้คืนได้ การคำนวณเงินเดือนจะถูกอัปเดตใหม่
-            </AlertDialogDescription>
+            <AlertDialogDescription>รายการนี้จะถูกลบอย่างถาวรและไม่สามารถกู้คืนได้</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>

@@ -25,7 +25,7 @@ const THAI_MONTHS = [
 ];
 const DAY_LABELS = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 
-type ShiftType = "D" | "N" | "S";
+type ShiftType = "D" | "N" | "S" | "DS" | "NS" | "DH" | "NH";
 
 interface ShiftRecord {
   id: number;
@@ -90,21 +90,33 @@ function computeMonthAutoShifts(
 }
 
 const SHIFT_COLORS: Record<ShiftType, string> = {
-  D: "bg-sky-500 text-white",
-  N: "bg-violet-600 text-white",
-  S: "bg-slate-400 text-white",
+  D:  "bg-sky-500 text-white",
+  N:  "bg-violet-600 text-white",
+  S:  "bg-slate-400 text-white",
+  DS: "bg-amber-500 text-white",
+  NS: "bg-amber-700 text-white",
+  DH: "bg-rose-500 text-white",
+  NH: "bg-rose-700 text-white",
 };
 
 const SHIFT_MUTED: Record<ShiftType, string> = {
-  D: "bg-sky-100 text-sky-600",
-  N: "bg-violet-100 text-violet-600",
-  S: "bg-slate-100 text-slate-500",
+  D:  "bg-sky-100 text-sky-600",
+  N:  "bg-violet-100 text-violet-600",
+  S:  "bg-slate-100 text-slate-500",
+  DS: "bg-amber-100 text-amber-700",
+  NS: "bg-amber-200 text-amber-800",
+  DH: "bg-rose-100 text-rose-700",
+  NH: "bg-rose-200 text-rose-800",
 };
 
 const SHIFT_LABEL: Record<ShiftType, string> = {
-  D: "กะกลางวัน",
-  N: "กะกลางคืน",
-  S: "วันหยุด",
+  D:  "กะกลางวัน",
+  N:  "กะกลางคืน",
+  S:  "วันหยุด",
+  DS: "หยุด/สัปดาห์ D",
+  NS: "หยุด/สัปดาห์ N",
+  DH: "หยุด/ประจำปี D",
+  NH: "หยุด/ประจำปี N",
 };
 
 export default function Calendar() {
@@ -395,16 +407,28 @@ export default function Calendar() {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="w-5 h-4 rounded inline-block bg-sky-500" /> D = กะกลางวัน
+          <span className="w-5 h-4 rounded inline-block bg-sky-500" /> D
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-5 h-4 rounded inline-block bg-violet-600" /> N = กะกลางคืน
+          <span className="w-5 h-4 rounded inline-block bg-violet-600" /> N
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-5 h-4 rounded inline-block bg-slate-400" /> S = วันหยุด
+          <span className="w-5 h-4 rounded inline-block bg-slate-400" /> S
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-5 h-4 rounded inline-block bg-sky-100 border border-sky-200" /> = อัตโนมัติ (ยังไม่บันทึก)
+          <span className="w-5 h-4 rounded inline-block bg-amber-500" /> DS
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-5 h-4 rounded inline-block bg-amber-700" /> NS
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-5 h-4 rounded inline-block bg-rose-500" /> DH
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-5 h-4 rounded inline-block bg-rose-700" /> NH
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-5 h-4 rounded inline-block bg-sky-100 border border-sky-200" /> = อัตโนมัติ
         </span>
       </div>
 
@@ -441,6 +465,23 @@ export default function Calendar() {
                   </button>
                 ))}
               </div>
+              <div className="flex gap-2 mt-1">
+                {(["DS", "NS", "DH", "NH"] as ShiftType[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setFormShift(t)}
+                    className={`flex-1 py-2 rounded-lg text-[11px] font-bold transition-all border-2 ${
+                      formShift === t
+                        ? SHIFT_COLORS[t] + " border-transparent"
+                        : "border-muted bg-muted/40 text-muted-foreground hover:border-muted-foreground"
+                    }`}
+                  >
+                    {t}
+                    <span className="block text-[9px] font-normal opacity-80 leading-tight">{SHIFT_LABEL[t]}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">DS/NS = หยุดประจำสัปดาห์ · DH/NH = หยุดประจำปี</p>
             </div>
 
             {/* OT Hours */}

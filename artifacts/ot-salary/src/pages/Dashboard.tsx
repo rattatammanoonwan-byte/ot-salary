@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { formatTHB } from "@/lib/format";
-import { 
-  useGetMonthlySummary, 
-  useGetYearlySummary, 
+import {
+  useGetMonthlySummary,
+  useGetYearlySummary,
   useListOtEntries,
   getGetMonthlySummaryQueryKey,
   getListOtEntriesQueryKey,
-  getGetYearlySummaryQueryKey
+  getGetYearlySummaryQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import OtEntryDialog from "@/components/OtEntryDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { getCurrentPayMonth, getPayPeriod, payPeriodLabel, thaiShortDate } from "@/lib/payPeriod";
+import { formatOtType } from "@/lib/format";
 
 export default function Dashboard() {
   const defaultPayMonth = getCurrentPayMonth();
@@ -31,6 +32,8 @@ export default function Dashboard() {
   const { data: recentEntries, isLoading: isEntriesLoading } = useListOtEntries({ month: selectedMonth });
 
   const isLoading = isSummaryLoading || isYearlyLoading || isEntriesLoading;
+
+  const s = monthlySummary as any;
 
   if (summaryError) {
     return (
@@ -52,11 +55,11 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">สรุปข้อมูลเงินเดือนและโอทีของคุณ</p>
         </div>
         <div className="flex items-center gap-2">
-          <input 
-            type="month" 
+          <input
+            type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" /> <span>บันทึก OT</span>
@@ -76,6 +79,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Summary cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -85,27 +89,23 @@ export default function Dashboard() {
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-[120px]" /> : (
               <>
-                <div className="text-2xl font-bold text-primary">{formatTHB(monthlySummary?.totalSalary || 0)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ฐานเงินเดือน: {formatTHB(monthlySummary?.baseSalary || 0)}
-                </p>
+                <div className="text-2xl font-bold text-primary">{formatTHB(s?.totalSalary || 0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">ฐานเงินเดือน: {formatTHB(s?.baseSalary || 0)}</p>
               </>
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ค่า OT (รอบนี้)</CardTitle>
+            <CardTitle className="text-sm font-medium">ค่า OT รวม (รอบนี้)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-[120px]" /> : (
               <>
-                <div className="text-2xl font-bold text-accent">{formatTHB(monthlySummary?.totalOtPay || 0)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  จากทั้งหมด {monthlySummary?.entriesCount || 0} รายการ
-                </p>
+                <div className="text-2xl font-bold text-accent">{formatTHB(s?.totalOtPay || 0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">จากทั้งหมด {s?.entriesCount || 0} รายการ</p>
               </>
             )}
           </CardContent>
@@ -119,10 +119,10 @@ export default function Dashboard() {
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-[80px]" /> : (
               <>
-                <div className="text-2xl font-bold">{monthlySummary?.totalOtHours || 0} ชม.</div>
-                <div className="flex gap-2 text-xs text-muted-foreground mt-1">
-                  <span>ปกติ: {monthlySummary?.weekdayOtHours || 0}</span>
-                  <span>หยุด: {((monthlySummary?.weekendOtHours || 0) + (monthlySummary?.holidayOtHours || 0))}</span>
+                <div className="text-2xl font-bold">{s?.totalOtHours || 0} ชม.</div>
+                <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                  <span>ปกติ: {s?.regularOtHours || 0}</span>
+                  <span>หยุด: {((s?.holidayBase8Hours || 0) + (s?.holidayExtraHours || 0)).toFixed(1)}</span>
                 </div>
               </>
             )}
@@ -138,15 +138,71 @@ export default function Dashboard() {
             {isLoading ? <Skeleton className="h-8 w-[120px]" /> : (
               <>
                 <div className="text-2xl font-bold">{formatTHB(yearlySummary?.totalOtPay || 0)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  รวม {yearlySummary?.totalOtHours || 0} ชม.
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">รวม {yearlySummary?.totalOtHours || 0} ชม.</p>
               </>
             )}
           </CardContent>
         </Card>
       </div>
 
+      {/* OT Breakdown */}
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-base">สรุปค่า OT แยกประเภท</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-1 text-sm">
+              {/* Regular OT × 1.5 */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
+                  <span className="text-muted-foreground">OT กะปกติ (D/N) ×1.5</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="text-muted-foreground w-16">{s?.regularOtHours || 0} ชม.</span>
+                  <span className="font-semibold w-24">{formatTHB(s?.regularOtPay || 0)}</span>
+                </div>
+              </div>
+              {/* Holiday × 1.0 (first 8h) */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-muted-foreground">วันหยุดพิเศษ (8ชม.แรก) ×1.0</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="text-muted-foreground w-16">{s?.holidayBase8Hours || 0} ชม.</span>
+                  <span className="font-semibold w-24">{formatTHB(s?.holidayBase8Pay || 0)}</span>
+                </div>
+              </div>
+              {/* Holiday × 3.0 (beyond 8h) */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span className="text-muted-foreground">วันหยุดพิเศษ (ชม.ที่ 9+) ×3.0</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="text-muted-foreground w-16">{s?.holidayExtraHours || 0} ชม.</span>
+                  <span className="font-semibold w-24">{formatTHB(s?.holidayExtraPay || 0)}</span>
+                </div>
+              </div>
+              {/* Total */}
+              <div className="flex items-center justify-between py-2 pt-3">
+                <span className="font-semibold text-foreground">รวมค่า OT ทั้งหมด</span>
+                <span className="font-bold text-lg text-accent w-24 text-right">{formatTHB(s?.totalOtPay || 0)}</span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent entries */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 bg-card">
           <CardHeader>
@@ -157,7 +213,6 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
               </div>
             ) : recentEntries && recentEntries.length > 0 ? (
               <div className="space-y-4">
@@ -166,8 +221,8 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm font-medium leading-none">{entry.date}</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {entry.hours} ชม. • {entry.otType === 'weekday' ? 'วันธรรมดา' : entry.otType === 'weekend' ? 'วันเสาร์-อาทิตย์' : 'วันหยุดนักขัตฤกษ์'}
-                        {entry.note ? ` • ${entry.note}` : ''}
+                        {entry.hours} ชม. • {formatOtType(entry.otType)}
+                        {entry.note ? ` • ${entry.note}` : ""}
                       </p>
                     </div>
                     <div className="font-medium text-accent">+{formatTHB(entry.otPay)}</div>
@@ -192,10 +247,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <OtEntryDialog 
-        open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen} 
-      />
+      <OtEntryDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
     </div>
   );
 }
