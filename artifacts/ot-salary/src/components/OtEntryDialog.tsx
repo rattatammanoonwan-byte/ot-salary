@@ -33,7 +33,7 @@ const OT_TYPES = [
 const formSchema = z.object({
   date: z.string().min(1, "กรุณาเลือกวันที่"),
   hours: z.coerce.number().min(0.5, "ชั่วโมงทำ OT ต้องมากกว่า 0"),
-  otType: z.enum(["D", "N", "DS", "NS", "DH", "NH"], { required_error: "กรุณาเลือกประเภท OT" }),
+  otType: z.enum(["D", "N", "DS", "NS", "DH", "NH", "PL", "SL", "AL", "weekday", "weekend", "holiday"], { required_error: "กรุณาเลือกประเภท OT" }),
   note: z.string().optional(),
 });
 

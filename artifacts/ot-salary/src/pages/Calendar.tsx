@@ -47,7 +47,7 @@ const THAI_MONTHS = [
 ];
 const DAY_LABELS = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 
-type ShiftType = "D" | "N" | "S" | "DS" | "NS" | "DH" | "NH";
+type ShiftType = "D" | "N" | "S" | "DS" | "NS" | "DH" | "NH" | "PL" | "SL" | "AL";
 
 interface ShiftRecord {
   id: number;
@@ -121,6 +121,9 @@ const SHIFT_COLORS: Record<ShiftType, string> = {
   NS: "bg-amber-700 text-white",
   DH: "bg-rose-500 text-white",
   NH: "bg-rose-700 text-white",
+  PL: "bg-orange-500 text-white",
+  SL: "bg-green-500 text-white",
+  AL: "bg-teal-500 text-white",
 };
 
 const SHIFT_MUTED: Record<ShiftType, string> = {
@@ -131,6 +134,9 @@ const SHIFT_MUTED: Record<ShiftType, string> = {
   NS: "bg-amber-200 text-amber-800",
   DH: "bg-rose-100 text-rose-700",
   NH: "bg-rose-200 text-rose-800",
+  PL: "bg-orange-100 text-orange-600",
+  SL: "bg-green-100 text-green-600",
+  AL: "bg-teal-100 text-teal-600",
 };
 
 const SHIFT_LABEL: Record<ShiftType, string> = {
@@ -141,6 +147,9 @@ const SHIFT_LABEL: Record<ShiftType, string> = {
   NS: "หยุด/สัปดาห์ N",
   DH: "หยุด/ประจำปี D",
   NH: "หยุด/ประจำปี N",
+  PL: "ลากิจ",
+  SL: "ลาป่วย",
+  AL: "ลาพักร้อน",
 };
 
 export default function Calendar() {
@@ -240,7 +249,8 @@ export default function Calendar() {
     let work = 0,
       d = 0,
       n = 0,
-      s = 0;
+      s = 0,
+      leave = 0;
 
     // คำนวณรอบเงินเดือน: 21 เดือนที่แล้ว → 20 เดือนนี้
     const periodStart = new Date(year, month - 1, 21);
@@ -264,10 +274,11 @@ export default function Calendar() {
       if (shift === "D" || shift === "DS" || shift === "DH") d++;
       else if (shift === "N" || shift === "NS" || shift === "NH") n++;
       else if (shift === "S") s++;
+      else if (shift === "PL" || shift === "SL" || shift === "AL") leave++;
       current.setDate(current.getDate() + 1);
     }
 
-    return { work, d, n, s };
+    return { work, d, n, s, leave };
   })();
 
   function openDialog(day: number) {
@@ -380,6 +391,7 @@ export default function Calendar() {
             color: "text-violet-600",
           },
           { label: "วันหยุด (S)", value: summary.s, color: "text-slate-500" },
+          { label: "วันลา (L)", value: summary.leave, color: "text-orange-500" },
         ].map((card) => (
           <Card key={card.label} className="bg-card">
             <CardContent className="p-3">
@@ -577,7 +589,7 @@ export default function Calendar() {
                 ))}
               </div>
               <div className="flex gap-2 mt-1">
-                {(["DS", "NS", "DH", "NH"] as ShiftType[]).map((t) => (
+                {(["DS", "NS", "DH", "NH",] as ShiftType[]).map((t) => (
                   <button
                     key={t}
                     onClick={() => setFormShift(t)}
@@ -595,8 +607,25 @@ export default function Calendar() {
                 ))}
               </div>
               <p className="text-[10px] text-muted-foreground">
-                DS/NS = หยุดประจำสัปดาห์ · DH/NH = หยุดประจำปี
+                DS/NS = หยุดประจำสัปดาห์ · DH/NH = หยุดประจำปี 
               </p>
+              <div className="flex gap-2 mt-1">
+                {(["PL", "SL", "AL"] as ShiftType[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setFormShift(t)}
+                    className={`flex-1 py-2 rounded-lg text-[11px] font-bold transition-all border-2 ${
+                      formShift === t
+                        ? SHIFT_COLORS[t] + " border-transparent"
+                        : "border-muted bg-muted/40 text-muted-foreground hover:border-muted-foreground"
+                    }`}
+                  >
+                    {t}
+                    <span className="block text-[9px] font-normal opacity-80 leading-tight">{SHIFT_LABEL[t]}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">PL = ลากิจ · SL = ลาป่วย · AL = ลาพักร้อน</p>
             </div>
 
             {/* OT Hours */}

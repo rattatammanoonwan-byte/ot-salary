@@ -44,7 +44,18 @@ router.post("/", async (req: AuthRequest, res: Response) => {
     workDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "workDate must be YYYY-MM-DD"),
-    shiftType: z.enum(["D", "N", "S", "DS", "NS", "DH", "NH"]),
+    shiftType: z.enum([
+      "D",
+      "N",
+      "S",
+      "DS",
+      "NS",
+      "DH",
+      "NH",
+      "PL",
+      "SL",
+      "AL",
+    ]),
     otHours: z.number().min(0).nullable().optional(),
     note: z.string().nullable().optional(),
   });
