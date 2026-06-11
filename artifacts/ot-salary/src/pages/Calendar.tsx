@@ -1,12 +1,24 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight, X, Save, Trash2, CalendarDays } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Save,
+  Trash2,
+  CalendarDays,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -20,8 +32,18 @@ function authHeaders() {
 }
 
 const THAI_MONTHS = [
-  "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
-  "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม",
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
 const DAY_LABELS = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 
@@ -62,7 +84,9 @@ function computeMonthAutoShifts(
   const result = new Map<string, ShiftType>();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const lastDay = new Date(year, month, daysInMonth);
-  const maxDiff = Math.floor((lastDay.getTime() - startDate.getTime()) / 86400000);
+  const maxDiff = Math.floor(
+    (lastDay.getTime() - startDate.getTime()) / 86400000,
+  );
 
   if (maxDiff < 0) return result; // entire month is before employment start
 
@@ -90,9 +114,9 @@ function computeMonthAutoShifts(
 }
 
 const SHIFT_COLORS: Record<ShiftType, string> = {
-  D:  "bg-sky-500 text-white",
-  N:  "bg-violet-600 text-white",
-  S:  "bg-slate-400 text-white",
+  D: "bg-sky-500 text-white",
+  N: "bg-violet-600 text-white",
+  S: "bg-slate-400 text-white",
   DS: "bg-amber-500 text-white",
   NS: "bg-amber-700 text-white",
   DH: "bg-rose-500 text-white",
@@ -100,9 +124,9 @@ const SHIFT_COLORS: Record<ShiftType, string> = {
 };
 
 const SHIFT_MUTED: Record<ShiftType, string> = {
-  D:  "bg-sky-100 text-sky-600",
-  N:  "bg-violet-100 text-violet-600",
-  S:  "bg-slate-100 text-slate-500",
+  D: "bg-sky-100 text-sky-600",
+  N: "bg-violet-100 text-violet-600",
+  S: "bg-slate-100 text-slate-500",
   DS: "bg-amber-100 text-amber-700",
   NS: "bg-amber-200 text-amber-800",
   DH: "bg-rose-100 text-rose-700",
@@ -110,9 +134,9 @@ const SHIFT_MUTED: Record<ShiftType, string> = {
 };
 
 const SHIFT_LABEL: Record<ShiftType, string> = {
-  D:  "กะกลางวัน",
-  N:  "กะกลางคืน",
-  S:  "วันหยุด",
+  D: "กะกลางวัน",
+  N: "กะกลางคืน",
+  S: "วันหยุด",
   DS: "หยุด/สัปดาห์ D",
   NS: "หยุด/สัปดาห์ N",
   DH: "หยุด/ประจำปี D",
@@ -124,9 +148,13 @@ export default function Calendar() {
   const { toast } = useToast();
 
   const today = new Date();
-  const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [viewDate, setViewDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1),
+  );
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
-  const [employmentStartDate, setEmploymentStartDate] = useState<string | null>(null);
+  const [employmentStartDate, setEmploymentStartDate] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -145,7 +173,9 @@ export default function Calendar() {
     try {
       const [settingsRes, shiftsRes] = await Promise.all([
         fetch(`${BASE}/api/settings`, { headers: authHeaders() }),
-        fetch(`${BASE}/api/shifts?month=${monthKey}`, { headers: authHeaders() }),
+        fetch(`${BASE}/api/shifts?month=${monthKey}`, {
+          headers: authHeaders(),
+        }),
       ]);
 
       if (settingsRes.ok) {
@@ -164,15 +194,21 @@ export default function Calendar() {
     }
   }, [monthKey]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const shiftMap = new Map<string, ShiftRecord>(shifts.map((s) => [s.workDate, s]));
+  const shiftMap = new Map<string, ShiftRecord>(
+    shifts.map((s) => [s.workDate, s]),
+  );
 
-  const startDate = employmentStartDate ? new Date(employmentStartDate + "T00:00:00") : null;
+  const startDate = employmentStartDate
+    ? new Date(employmentStartDate + "T00:00:00")
+    : null;
 
   // Compute auto-schedule for the entire month in one simulation pass
   // คำนวณ autoShift ครอบคลุมทั้ง 2 เดือน เพื่อให้รอบ 21-20 ได้ข้อมูลครบ
-  const prevYear  = month === 0 ? year - 1 : year;
+  const prevYear = month === 0 ? year - 1 : year;
   const prevMonth = month === 0 ? 11 : month - 1;
 
   const autoShiftMap = startDate
@@ -182,7 +218,9 @@ export default function Calendar() {
       ])
     : new Map<string, ShiftType>();
 
-  function getDisplayShift(dateStr: string): { shift: ShiftType; isSaved: boolean } | null {
+  function getDisplayShift(
+    dateStr: string,
+  ): { shift: ShiftType; isSaved: boolean } | null {
     const saved = shiftMap.get(dateStr);
     if (saved) return { shift: saved.shiftType as ShiftType, isSaved: true };
     const auto = autoShiftMap.get(dateStr);
@@ -199,19 +237,30 @@ export default function Calendar() {
   while (cells.length % 7 !== 0) cells.push(null);
 
   const summary = (() => {
-    let work = 0, d = 0, n = 0, s = 0;
+    let work = 0,
+      d = 0,
+      n = 0,
+      s = 0;
 
     // คำนวณรอบเงินเดือน: 21 เดือนที่แล้ว → 20 เดือนนี้
     const periodStart = new Date(year, month - 1, 21);
-    const periodEnd   = new Date(year, month, 20);
+    const periodEnd = new Date(year, month, 20);
 
     const current = new Date(periodStart);
     while (current <= periodEnd) {
-      const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,"0")}-${String(current.getDate()).padStart(2,"0")}`;
+      const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
       const saved = shiftMap.get(dateStr);
-      const auto  = autoShiftMap.get(dateStr);
+      const auto = autoShiftMap.get(dateStr);
       const shift = saved?.shiftType ?? auto;
-      if (shift === "D" || shift === "N") work++;
+      if (
+        shift === "D" ||
+        shift === "N" ||
+        shift === "NS" ||
+        shift === "NH" ||
+        shift === "DS" ||
+        shift === "DH"
+      )
+        work++;
       if (shift === "D" || shift === "DS" || shift === "DH") d++;
       else if (shift === "N" || shift === "NS" || shift === "NH") n++;
       else if (shift === "S") s++;
@@ -226,7 +275,7 @@ export default function Calendar() {
     const saved = shiftMap.get(dateStr);
     const autoInfo = getDisplayShift(dateStr);
     setDialogDate(dateStr);
-    setFormShift(saved?.shiftType as ShiftType ?? autoInfo?.shift ?? "D");
+    setFormShift((saved?.shiftType as ShiftType) ?? autoInfo?.shift ?? "D");
     setFormOt(saved?.otHours != null ? String(saved.otHours) : "");
     setFormNote(saved?.note ?? "");
     setDialogOpen(true);
@@ -254,7 +303,11 @@ export default function Calendar() {
       setDialogOpen(false);
       toast({ title: "บันทึกสำเร็จ" });
     } catch (e: any) {
-      toast({ title: "เกิดข้อผิดพลาด", description: e.message, variant: "destructive" });
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: e.message,
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -277,17 +330,29 @@ export default function Calendar() {
     }
   }
 
-  const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayStr = formatDate(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ตารางกะ</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">คลิกวันเพื่อบันทึก OT และหมายเหตุ</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            ตารางกะ
+          </h1>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            คลิกวันเพื่อบันทึก OT และหมายเหตุ
+          </p>
         </div>
         {!employmentStartDate && (
-          <Button variant="outline" size="sm" onClick={() => setLocation("/settings")}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation("/settings")}
+          >
             ตั้งค่าวันเริ่มงาน
           </Button>
         )}
@@ -295,16 +360,25 @@ export default function Calendar() {
 
       {!employmentStartDate && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          ⚠️ กรุณากำหนดวันเริ่มทำงานในหน้า <strong>ตั้งค่า</strong> เพื่อให้ระบบคำนวณตารางกะอัตโนมัติ
+          ⚠️ กรุณากำหนดวันเริ่มทำงานในหน้า <strong>ตั้งค่า</strong>{" "}
+          เพื่อให้ระบบคำนวณตารางกะอัตโนมัติ
         </div>
       )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
-          { label: "วันทำงาน (รอบนี้)", value: summary.work, color: "text-foreground" },
+          {
+            label: "วันทำงาน (รอบนี้)",
+            value: summary.work,
+            color: "text-foreground",
+          },
           { label: "กะกลางวัน (D)", value: summary.d, color: "text-sky-600" },
-          { label: "กะกลางคืน (N)", value: summary.n, color: "text-violet-600" },
+          {
+            label: "กะกลางคืน (N)",
+            value: summary.n,
+            color: "text-violet-600",
+          },
           { label: "วันหยุด (S)", value: summary.s, color: "text-slate-500" },
         ].map((card) => (
           <Card key={card.label} className="bg-card">
@@ -318,13 +392,21 @@ export default function Calendar() {
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={() => setViewDate(new Date(year, month - 1, 1))}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setViewDate(new Date(year, month - 1, 1))}
+        >
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <h2 className="text-lg font-semibold">
           {THAI_MONTHS[month]} {year + 543}
         </h2>
-        <Button variant="ghost" size="icon" onClick={() => setViewDate(new Date(year, month + 1, 1))}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setViewDate(new Date(year, month + 1, 1))}
+        >
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
@@ -337,7 +419,11 @@ export default function Calendar() {
             <div
               key={d}
               className={`py-2 text-center text-xs font-semibold ${
-                i === 0 ? "text-rose-500" : i === 6 ? "text-blue-500" : "text-muted-foreground"
+                i === 0
+                  ? "text-rose-500"
+                  : i === 6
+                    ? "text-blue-500"
+                    : "text-muted-foreground"
               }`}
             >
               {d}
@@ -373,7 +459,11 @@ export default function Calendar() {
                   key={dateStr}
                   onClick={() => openDialog(day)}
                   className={`min-h-[72px] md:min-h-[90px] border-b border-r last:border-r-0 p-1 cursor-pointer transition-colors hover:bg-muted/50 flex flex-col gap-1 ${
-                    isSunday ? "bg-rose-50/50" : isSaturday ? "bg-blue-50/30" : ""
+                    isSunday
+                      ? "bg-rose-50/50"
+                      : isSaturday
+                        ? "bg-blue-50/30"
+                        : ""
                   }`}
                 >
                   <span
@@ -381,10 +471,10 @@ export default function Calendar() {
                       isToday
                         ? "bg-primary text-primary-foreground"
                         : isSunday
-                        ? "text-rose-500"
-                        : isSaturday
-                        ? "text-blue-500"
-                        : "text-foreground"
+                          ? "text-rose-500"
+                          : isSaturday
+                            ? "text-blue-500"
+                            : "text-foreground"
                     }`}
                   >
                     {day}
@@ -393,7 +483,9 @@ export default function Calendar() {
                   {info && (
                     <span
                       className={`text-[11px] font-bold px-1.5 py-0.5 rounded text-center ${
-                        info.isSaved ? SHIFT_COLORS[info.shift] : SHIFT_MUTED[info.shift]
+                        info.isSaved
+                          ? SHIFT_COLORS[info.shift]
+                          : SHIFT_MUTED[info.shift]
                       }`}
                     >
                       {info.shift}
@@ -442,7 +534,8 @@ export default function Calendar() {
           <span className="w-5 h-4 rounded inline-block bg-rose-700" /> NH
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-5 h-4 rounded inline-block bg-sky-100 border border-sky-200" /> = อัตโนมัติ
+          <span className="w-5 h-4 rounded inline-block bg-sky-100 border border-sky-200" />{" "}
+          = อัตโนมัติ
         </span>
       </div>
 
@@ -452,10 +545,12 @@ export default function Calendar() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
-              {dialogDate ? (() => {
-                const d = new Date(dialogDate + "T00:00:00");
-                return `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
-              })() : ""}
+              {dialogDate
+                ? (() => {
+                    const d = new Date(dialogDate + "T00:00:00");
+                    return `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+                  })()
+                : ""}
             </DialogTitle>
           </DialogHeader>
 
@@ -475,7 +570,9 @@ export default function Calendar() {
                     }`}
                   >
                     {t}
-                    <span className="block text-[10px] font-normal opacity-80">{SHIFT_LABEL[t]}</span>
+                    <span className="block text-[10px] font-normal opacity-80">
+                      {SHIFT_LABEL[t]}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -491,11 +588,15 @@ export default function Calendar() {
                     }`}
                   >
                     {t}
-                    <span className="block text-[9px] font-normal opacity-80 leading-tight">{SHIFT_LABEL[t]}</span>
+                    <span className="block text-[9px] font-normal opacity-80 leading-tight">
+                      {SHIFT_LABEL[t]}
+                    </span>
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-muted-foreground">DS/NS = หยุดประจำสัปดาห์ · DH/NH = หยุดประจำปี</p>
+              <p className="text-[10px] text-muted-foreground">
+                DS/NS = หยุดประจำสัปดาห์ · DH/NH = หยุดประจำปี
+              </p>
             </div>
 
             {/* OT Hours */}
@@ -518,11 +619,20 @@ export default function Calendar() {
                 {saving ? "กำลังบันทึก..." : "บันทึก"}
               </Button>
               {shiftMap.has(dialogDate) && (
-                <Button variant="destructive" size="icon" onClick={handleDelete} disabled={saving}>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={saving}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={() => setDialogOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDialogOpen(false)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
