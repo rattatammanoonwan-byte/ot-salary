@@ -40,13 +40,15 @@ function formatDate(y: number, m: number, d: number) {
 }
 
 /**
- * Simulates the shift schedule day-by-day from employment start date.
+ * Calculates the shift schedule for every day in the target month.
  *
- * Rules:
- *  - 6 working days → 1 off day (S) repeating continuously
- *  - Among working days: first 14 are D, next 14 are N, then repeat
- *  - When switching N → D, insert 1 extra transition S day regardless of
- *    where in the 6-on-1-off cycle we are (night shift ends 08:00 next day)
+ * Cycle = 21 calendar days (repeats forever from employment start):
+ *   pos  0– 5  →  D  (6 day shift days)
+ *   pos  6      →  S  (off)
+ *   pos  7–12  →  D  (6 day shift days)
+ *   pos  13     →  S  (off)
+ *   pos  14–19  →  N  (6 night shift days)
+ *   pos  20     →  S  (off)
  *
  * Returns a map of dateStr → ShiftType for every day in the target month.
  */
@@ -62,42 +64,17 @@ function computeMonthAutoShifts(
 
   if (maxDiff < 0) return result; // entire month is before employment start
 
-  let weekCycle = 0;   // 0-5 = work day, 6 = regular off
-  let dPhase = true;   // true = D phase, false = N phase
-  let phaseWork = 0;   // working days counted in current phase
-  let transNext = false; // true = next calendar day is the N→D transition S
-
   for (let d = 0; d <= maxDiff; d++) {
+    const pos = d % 21;
+
     let shift: ShiftType;
-
-    if (transNext) {
-      // Forced transition off day (N → D switch)
+    if (pos === 6 || pos === 13 || pos === 20) {
       shift = "S";
-      transNext = false;
-      dPhase = true;
-      phaseWork = 0;
-    } else if (weekCycle === 6) {
-      // Regular 6-on-1-off rest day
-      shift = "S";
+    } else if (pos >= 14) {
+      shift = "N"; // pos 14–19
     } else {
-      // Working day
-      shift = dPhase ? "D" : "N";
-      phaseWork++;
-
-      if (dPhase && phaseWork === 14) {
-        // Completed 14 D days → switch to N
-        dPhase = false;
-        phaseWork = 0;
-      } else if (!dPhase && phaseWork === 14) {
-        // Completed 14 N days → schedule transition S next calendar day
-        transNext = true;
-        phaseWork = 0;
-        // dPhase will be set to true when transNext fires
-      }
+      shift = "D"; // pos 0–5 and 7–12
     }
-
-    // Always advance the 6-on-1-off week cycle (even on transition S days)
-    weekCycle = (weekCycle + 1) % 7;
 
     // Store only days that fall in the target month
     const dayMs = startDate.getTime() + d * 86400000;
