@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { formatTHB } from "@/lib/format";
 import { 
   useGetMonthlySummary, 
@@ -10,19 +10,21 @@ import {
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Clock, CreditCard, TrendingUp, Calendar, AlertCircle } from "lucide-react";
+import { Plus, Clock, CreditCard, TrendingUp, Calendar, AlertCircle, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import OtEntryDialog from "@/components/OtEntryDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "wouter";
+import { getCurrentPayMonth, getPayPeriod, payPeriodLabel, thaiShortDate } from "@/lib/payPeriod";
 
 export default function Dashboard() {
-  const now = new Date();
-  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const currentYearStr = String(now.getFullYear());
-  
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+  const defaultPayMonth = getCurrentPayMonth();
+  const currentYearStr = defaultPayMonth.split("-")[0];
+
+  const [selectedMonth, setSelectedMonth] = useState(defaultPayMonth);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const period = getPayPeriod(selectedMonth);
 
   const { data: monthlySummary, isLoading: isSummaryLoading, error: summaryError } = useGetMonthlySummary({ month: selectedMonth });
   const { data: yearlySummary, isLoading: isYearlyLoading } = useGetYearlySummary({ year: currentYearStr });
@@ -62,10 +64,22 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Pay period banner */}
+      <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+        <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
+        <div>
+          <span className="font-medium text-foreground">รอบ OT: </span>
+          <span className="text-muted-foreground">{payPeriodLabel(period)}</span>
+          <span className="mx-2 text-muted-foreground/40">•</span>
+          <span className="font-medium text-foreground">วันจ่าย: </span>
+          <span className="text-muted-foreground">{thaiShortDate(period.payDate)}</span>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">เงินเดือนสุทธิ (เดือนนี้)</CardTitle>
+            <CardTitle className="text-sm font-medium">เงินเดือนสุทธิ (รอบนี้)</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -82,7 +96,7 @@ export default function Dashboard() {
         
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ค่า OT (เดือนนี้)</CardTitle>
+            <CardTitle className="text-sm font-medium">ค่า OT (รอบนี้)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -99,7 +113,7 @@ export default function Dashboard() {
 
         <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ชั่วโมง OT (เดือนนี้)</CardTitle>
+            <CardTitle className="text-sm font-medium">ชั่วโมง OT (รอบนี้)</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -108,7 +122,7 @@ export default function Dashboard() {
                 <div className="text-2xl font-bold">{monthlySummary?.totalOtHours || 0} ชม.</div>
                 <div className="flex gap-2 text-xs text-muted-foreground mt-1">
                   <span>ปกติ: {monthlySummary?.weekdayOtHours || 0}</span>
-                  <span>หยุด: {(monthlySummary?.weekendOtHours || 0) + (monthlySummary?.holidayOtHours || 0)}</span>
+                  <span>หยุด: {((monthlySummary?.weekendOtHours || 0) + (monthlySummary?.holidayOtHours || 0))}</span>
                 </div>
               </>
             )}
@@ -168,7 +182,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Clock className="mx-auto h-8 w-8 opacity-20 mb-3" />
-                <p>ยังไม่มีบันทึก OT ในเดือนนี้</p>
+                <p>ยังไม่มีบันทึก OT ในรอบนี้</p>
                 <Button variant="outline" className="mt-4" onClick={() => setIsAddDialogOpen(true)}>
                   เพิ่มรายการแรก
                 </Button>

@@ -9,7 +9,7 @@ import {
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit2, List as ListIcon, CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Edit2, List as ListIcon, CalendarIcon, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import OtEntryDialog from "@/components/OtEntryDialog";
 import {
@@ -25,15 +25,15 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { getCurrentPayMonth, getPayPeriod, payPeriodLabel, thaiShortDate } from "@/lib/payPeriod";
 
 export default function Entries() {
-  const now = new Date();
-  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentPayMonth);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<any>(null);
   const [entryToDelete, setEntryToDelete] = useState<number | null>(null);
+
+  const period = getPayPeriod(selectedMonth);
 
   const { data: entries, isLoading } = useListOtEntries({ month: selectedMonth });
   const deleteMutation = useDeleteOtEntry();
@@ -85,6 +85,18 @@ export default function Entries() {
           <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" /> <span>บันทึก OT</span>
           </Button>
+        </div>
+      </div>
+
+      {/* Pay period banner */}
+      <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+        <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
+        <div>
+          <span className="font-medium text-foreground">รอบ OT: </span>
+          <span className="text-muted-foreground">{payPeriodLabel(period)}</span>
+          <span className="mx-2 text-muted-foreground/40">•</span>
+          <span className="font-medium text-foreground">วันจ่าย: </span>
+          <span className="text-muted-foreground">{thaiShortDate(period.payDate)}</span>
         </div>
       </div>
 
@@ -140,7 +152,7 @@ export default function Entries() {
               </div>
               <h3 className="text-lg font-medium text-foreground">ไม่มีข้อมูล</h3>
               <p className="text-muted-foreground mt-1 mb-6 max-w-sm mx-auto">
-                ยังไม่มีรายการทำล่วงเวลาในเดือนที่คุณเลือก เริ่มบันทึก OT เพื่อคำนวณรายได้ของคุณ
+                ยังไม่มีรายการทำล่วงเวลาในรอบนี้ เริ่มบันทึก OT เพื่อคำนวณรายได้ของคุณ
               </p>
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 บันทึก OT ครั้งแรก

@@ -6,14 +6,33 @@ import { eq, and, sql } from "drizzle-orm";
 const router = Router();
 router.use(requireAuth);
 
+/**
+ * Returns the pay-period date range for a given pay month (YYYY-MM).
+ * Period: 21st of previous month → 20th of pay month.
+ * Payment: last day of pay month.
+ */
+function payPeriodRange(month: string): { start: string; end: string; payDate: string } {
+  const [year, mon] = month.split("-").map(Number);
+  let prevYear = year, prevMon = mon - 1;
+  if (prevMon === 0) { prevMon = 12; prevYear--; }
+  const start = `${prevYear}-${String(prevMon).padStart(2, "0")}-21`;
+  const end   = `${year}-${String(mon).padStart(2, "0")}-20`;
+  const lastDay = new Date(year, mon, 0).getDate();
+  const payDate = `${year}-${String(mon).padStart(2, "0")}-${lastDay}`;
+  return { start, end, payDate };
+}
+
 async function buildMonthlySummary(userId: string, month: string, baseSalary: number) {
+  const { start, end, payDate } = payPeriodRange(month);
+
   const rows = await db
     .select()
     .from(otEntriesTable)
     .where(
       and(
         eq(otEntriesTable.userId, userId),
-        sql`to_char(${otEntriesTable.date}::date, 'YYYY-MM') = ${month}`,
+        sql`${otEntriesTable.date}::date >= ${start}::date`,
+        sql`${otEntriesTable.date}::date <= ${end}::date`,
       ),
     );
 
@@ -33,6 +52,9 @@ async function buildMonthlySummary(userId: string, month: string, baseSalary: nu
 
   return {
     month,
+    periodStart: start,
+    periodEnd: end,
+    payDate,
     baseSalary,
     totalOtHours: parseFloat(totalOtHours.toFixed(2)),
     totalOtPay: parseFloat(totalOtPay.toFixed(2)),

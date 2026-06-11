@@ -33,10 +33,17 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     .$dynamic();
 
   if (month) {
+    // Pay period: 21st of previous month → 20th of pay month
+    const [year, mon] = month.split("-").map(Number);
+    let prevYear = year, prevMon = mon - 1;
+    if (prevMon === 0) { prevMon = 12; prevYear--; }
+    const start = `${prevYear}-${String(prevMon).padStart(2, "0")}-21`;
+    const end   = `${year}-${String(mon).padStart(2, "0")}-20`;
     query = query.where(
       and(
         eq(otEntriesTable.userId, userId),
-        sql`to_char(${otEntriesTable.date}::date, 'YYYY-MM') = ${month}`,
+        sql`${otEntriesTable.date}::date >= ${start}::date`,
+        sql`${otEntriesTable.date}::date <= ${end}::date`,
       ),
     );
   }
