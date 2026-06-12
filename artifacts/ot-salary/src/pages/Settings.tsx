@@ -30,9 +30,9 @@ function authHeaders() {
 
 const formSchema = z.object({
   baseSalary: z.coerce.number().min(0, "เงินเดือนต้องไม่ติดลบ"),
-  otRate: z.coerce.number().min(1, "อัตราโอทีต้องมากกว่าหรือเท่ากับ 1"),
-  hoursPerDay: z.coerce.number().min(1, "ชั่วโมงทำงานต้องมากกว่า 0").max(24, "ไม่เกิน 24 ชม."),
-  workingDaysPerMonth: z.coerce.number().min(1, "วันทำงานต้องมากกว่า 0").max(31, "ไม่เกิน 31 วัน"),
+  otRate: z.coerce.number().default(1.5),
+  hoursPerDay: z.coerce.number().default(8),
+  workingDaysPerMonth: z.coerce.number().default(30),
 });
 
 export default function Settings() {
@@ -46,12 +46,30 @@ export default function Settings() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      baseSalary: 15000,
-      otRate: 1.5,
-      hoursPerDay: 8,
-      workingDaysPerMonth: 30,
-    },
+    <Form {...form}>
+  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormField
+      control={form.control}
+      name="baseSalary"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
+          <FormControl>
+            <Input type="number" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
+      {upsertMutation.isPending ? (
+        <span className="flex items-center gap-2">กำลังบันทึก...</span>
+      ) : (
+        <span className="flex items-center gap-2"><Save className="h-4 w-4" /> บันทึกการตั้งค่า</span>
+      )}
+    </Button>
+  </form>
+</Form>
   });
 
   useEffect(() => {
