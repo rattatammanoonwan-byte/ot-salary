@@ -46,9 +46,13 @@ export default function Settings() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    <Form {...form}>
-  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-    <FormField
+    defaultValues: {
+      baseSalary: 15000,
+      otRate: 1.5,
+      hoursPerDay: 8,
+      workingDaysPerMonth: 30,
+    },
+  });
       control={form.control}
       name="baseSalary"
       render={({ field }) => (
@@ -195,74 +199,29 @@ export default function Settings() {
             </div>
           ) : (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="baseSalary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="otRate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>อัตราคูณ OT</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.5" {...field} />
-                        </FormControl>
-                        <FormDescription>ปกติคือ 1.5 หรือ 3.0</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="workingDaysPerMonth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>วันทำงานต่อเดือน (วัน)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormDescription>ใช้ 30 เพื่อหารเฉลี่ยตามกฎหมายแรงงาน</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="hoursPerDay"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ชั่วโมงทำงานต่อวัน (ชม.)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormDescription>ปกติคือ 8 ชั่วโมง</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
-                  {upsertMutation.isPending ? (
-                    <span className="flex items-center gap-2">กำลังบันทึก...</span>
-                  ) : (
-                    <span className="flex items-center gap-2"><Save className="h-4 w-4" /> บันทึกการตั้งค่า</span>
-                  )}
-                </Button>
-              </form>
-            </Form>
+  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormField
+      control={form.control}
+      name="baseSalary"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
+          <FormControl>
+            <Input type="number" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
+      {upsertMutation.isPending ? (
+        <span className="flex items-center gap-2">กำลังบันทึก...</span>
+      ) : (
+        <span className="flex items-center gap-2"><Save className="h-4 w-4" /> บันทึกการตั้งค่า</span>
+      )}
+    </Button>
+  </form>
+</Form>
           )}
         </CardContent>
       </Card>
