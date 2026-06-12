@@ -53,29 +53,6 @@ export default function Settings() {
       workingDaysPerMonth: 30,
     },
   });
-      control={form.control}
-      name="baseSalary"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
-          <FormControl>
-            <Input type="number" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-    <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
-      {upsertMutation.isPending ? (
-        <span className="flex items-center gap-2">กำลังบันทึก...</span>
-      ) : (
-        <span className="flex items-center gap-2"><Save className="h-4 w-4" /> บันทึกการตั้งค่า</span>
-      )}
-    </Button>
-  </form>
-</Form>
-  });
-
   useEffect(() => {
     if (settings) {
       form.reset({
