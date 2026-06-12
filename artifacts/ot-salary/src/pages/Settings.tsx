@@ -33,6 +33,11 @@ const formSchema = z.object({
   otRate: z.coerce.number().default(1.5),
   hoursPerDay: z.coerce.number().default(8),
   workingDaysPerMonth: z.coerce.number().default(30),
+  transportAllowance: z.coerce.number().min(0).default(0),
+  mealAllowance: z.coerce.number().min(0).default(0),
+  otMealAllowance: z.coerce.number().min(0).default(0),
+  diligenceAllowance: z.coerce.number().min(0).default(0),
+  shiftAllowance: z.coerce.number().min(0).default(0),
 });
 
 export default function Settings() {
@@ -47,20 +52,30 @@ export default function Settings() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      baseSalary: 15000,
-      otRate: 1.5,
-      hoursPerDay: 8,
-      workingDaysPerMonth: 30,
-    },
+  baseSalary: 15000,
+  otRate: 1.5,
+  hoursPerDay: 8,
+  workingDaysPerMonth: 30,
+  transportAllowance: 0,
+  mealAllowance: 0,
+  otMealAllowance: 0,
+  diligenceAllowance: 0,
+  shiftAllowance: 0,
+},
   });
   useEffect(() => {
     if (settings) {
       form.reset({
-        baseSalary: settings.baseSalary,
-        otRate: settings.otRate,
-        hoursPerDay: settings.hoursPerDay,
-        workingDaysPerMonth: settings.workingDaysPerMonth,
-      });
+  baseSalary: settings.baseSalary,
+  otRate: settings.otRate,
+  hoursPerDay: settings.hoursPerDay,
+  workingDaysPerMonth: settings.workingDaysPerMonth,
+  transportAllowance: (settings as any).transportAllowance ?? 0,
+  mealAllowance: (settings as any).mealAllowance ?? 0,
+  otMealAllowance: (settings as any).otMealAllowance ?? 0,
+  diligenceAllowance: (settings as any).diligenceAllowance ?? 0,
+  shiftAllowance: (settings as any).shiftAllowance ?? 0,
+});
       const s = settings as any;
       if (s.employmentStartDate) setStartDate(s.employmentStartDate);
     }
@@ -199,6 +214,74 @@ export default function Settings() {
     </Button>
   </form>
 </Form>
+
+{/* สวัสดิการ */}
+    <div className="pt-2 border-t">
+      <p className="text-sm font-semibold mb-4">สวัสดิการ (บาท/วัน)</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField control={form.control} name="transportAllowance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ค่าเดินทาง</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormDescription>จ่ายเมื่อมาทำงาน D, N, DS, NS, DH, NH</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField control={form.control} name="mealAllowance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ค่าข้าว</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormDescription>จ่ายเมื่อมาทำงาน D, N, DS, NS, DH, NH</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField control={form.control} name="otMealAllowance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ค่าข้าวโอที</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormDescription>จ่ายเมื่อมี OT (ชั่วโมง &gt; 0)</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField control={form.control} name="diligenceAllowance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>เบี้ยขยัน</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField control={form.control} name="shiftAllowance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ค่ากะ</FormLabel>
+              <FormControl><Input type="number" {...field} /></FormControl>
+              <FormDescription>จ่ายเมื่อเข้ากะดึก N, NS, NH</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
+
+    <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
+      {upsertMutation.isPending ? "กำลังบันทึก..." : (
+        <span className="flex items-center gap-2">
+          <Save className="h-4 w-4" /> บันทึกการตั้งค่า
+        </span>
+      )}
+    </Button>
+  </form>
+</Form>
+
           )}
         </CardContent>
       </Card>
