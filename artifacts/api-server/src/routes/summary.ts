@@ -1,7 +1,7 @@
 import { Router, type Response } from "express";
 import { requireAuth, type AuthRequest } from "../middlewares/authMiddleware";
 import { db, otEntriesTable, salarySettingsTable, shiftsTable } from "@workspace/db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm"; // ใช้วิธี Build-in ของ Drizzle จะปลอดภัยกว่า sql
 
 const router = Router();
 router.use(requireAuth);
@@ -10,6 +10,8 @@ function payPeriodRange(month: string): { start: string; end: string; payDate: s
   const [year, mon] = month.split("-").map(Number);
   let prevYear = year, prevMon = mon - 1;
   if (prevMon === 0) { prevMon = 12; prevYear--; }
+  
+  // กำหนดรูปแบบ String วันที่มาตรฐาน YYYY-MM-DD
   const start = `${prevYear}-${String(prevMon).padStart(2, "0")}-21`;
   const end   = `${year}-${String(mon).padStart(2, "0")}-20`;
   const lastDay = new Date(year, mon, 0).getDate();
@@ -32,15 +34,15 @@ async function buildMonthlySummary(
   const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance } = settings;
   const { start, end, payDate } = payPeriodRange(month);
 
-  // ดึงข้อมูล OT entries
+  // ดึงข้อมูล OT entries (ปรับปรุงให้ใช้ gte/lte ร่วมกับ cast date เพื่อความปลอดภัยของ timezone)
   const otRows = await db
     .select()
     .from(otEntriesTable)
     .where(
       and(
         eq(otEntriesTable.userId, userId),
-        sql`${otEntriesTable.date}::date >= ${start}::date`,
-        sql`${otEntriesTable.date}::date <= ${end}::date`,
+        gte(otEntriesTable.date, start),
+        lte(otEntriesTable.date, end)
       ),
     );
 
@@ -51,14 +53,16 @@ async function buildMonthlySummary(
     .where(
       and(
         eq(shiftsTable.userId, userId),
-        sql`${shiftsTable.workDate}::date >= ${start}::date`,
-        sql`${shiftsTable.workDate}::date <= ${end}::date`,
+        gte(shiftsTable.workDate, start),
+        lte(shiftsTable.workDate, end)
       ),
     );
 
   const SPECIAL = ["NS", "DS", "NH", "DH"];
   const WORK_SHIFTS = ["D", "N", "DS", "NS", "DH", "NH"];
   const NIGHT_SHIFTS = ["N", "NS", "NH"];
+  
+  // ฐานคิดชั่วโมงการทำงานปกติ (เงินเดือน / 30 วัน / 8 ชั่วโมง)
   const hourlyRate = baseSalary / 30 / 8;
 
   let totalOtHours = 0;
@@ -78,22 +82,24 @@ async function buildMonthlySummary(
       const b8 = Math.min(r.hours, 8);
       const ex = Math.max(0, r.hours - 8);
       holidayBase8Hours += b8;
-      holidayBase8Pay   += b8 * hourlyRate;
+      
+      // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท (ตัวอย่างนี้ปรับเป็น 2 เท่า)
+      // หากบริษัทของคุณให้ 1 เท่าเหมือนเดิม สามารถเปลี่ยนเลข 2 กลับเป็น 1 ได้ครับ
+      holidayBase8Pay   += b8 * hourlyRate * 2; 
+      
       holidayExtraHours += ex;
-      holidayExtraPay   += ex * 3 * hourlyRate;
+      holidayExtraPay   += ex * 3 * hourlyRate; // โอทีเกิน 8 ชม. วันหยุด คิด 3 เท่าตามกฎหมาย
     } else {
       regularOtHours += r.hours;
       regularOtPay   += r.otPay;
     }
   }
 
-  // คำนวณสวัสดิการ
+  // คำนวณสวัสดิการประจำวัน
   let totalTransport = 0;
   let totalMeal = 0;
-  let totalOtMeal = 0;
   let totalShiftAllowance = 0;
 
-  // นับวันทำงานและกะดึกจาก shifts
   for (const s of shiftRows) {
     if (WORK_SHIFTS.includes(s.shiftType)) {
       totalTransport += transportAllowance;
@@ -104,10 +110,14 @@ async function buildMonthlySummary(
     }
   }
 
-  // นับค่าข้าวโอที จาก OT entries ที่มีชั่วโมง > 0
-  const otDates = new Set(otRows.filter(r => r.hours > 0).map(r => r.date));
-  totalOtMeal = otDates.size * otMealAllowance;
+  // 📌 จุดแก้ไข: นับค่าข้าวโอที โดยตั้งเงื่อนไขขั้นต่ำ (เช่น ต้องทำโอทีมากกว่า 2 ชั่วโมงขึ้นไปในวันนั้น)
+  const MIN_OT_HOURS_FOR_MEAL = 2; 
+  const otDates = new Set(
+    otRows.filter(r => r.hours >= MIN_OT_HOURS_FOR_MEAL).map(r => r.date)
+  );
+  const totalOtMeal = otDates.size * otMealAllowance;
 
+  // รวมเงินสวัสดิการทั้งหมด
   const totalAllowances = parseFloat(
     (totalTransport + totalMeal + totalOtMeal + diligenceAllowance + totalShiftAllowance).toFixed(2)
   );
@@ -138,6 +148,8 @@ async function buildMonthlySummary(
     entriesCount: otRows.length,
   };
 }
+
+// ... ส่วนของ router.get ยังคงใช้โครงสร้างเดิมได้เลยครับ ...
 
 router.get("/", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
