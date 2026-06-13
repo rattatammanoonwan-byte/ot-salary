@@ -13,6 +13,11 @@ const settingsInputSchema = z.object({
   hoursPerDay: z.number().positive(),
   workingDaysPerMonth: z.number().positive(),
   employmentStartDate: z.string().nullable().optional(),
+  transportAllowance: z.number().min(0).default(0),
+  mealAllowance: z.number().min(0).default(0),
+  otMealAllowance: z.number().min(0).default(0),
+  diligenceAllowance: z.number().min(0).default(0),
+  shiftAllowance: z.number().min(0).default(0),
 });
 
 function formatRow(s: typeof salarySettingsTable.$inferSelect) {
@@ -24,6 +29,11 @@ function formatRow(s: typeof salarySettingsTable.$inferSelect) {
     hoursPerDay: s.hoursPerDay,
     workingDaysPerMonth: s.workingDaysPerMonth,
     employmentStartDate: s.employmentStartDate ?? null,
+    transportAllowance: s.transportAllowance ?? 0,
+    mealAllowance: s.mealAllowance ?? 0,
+    otMealAllowance: s.otMealAllowance ?? 0,
+    diligenceAllowance: s.diligenceAllowance ?? 0,
+    shiftAllowance: s.shiftAllowance ?? 0,
     updatedAt: s.updatedAt.toISOString(),
   };
 }
@@ -52,7 +62,18 @@ router.put("/", async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ error: "Invalid input" });
   }
 
-  const { baseSalary, otRate, hoursPerDay, workingDaysPerMonth, employmentStartDate } = parsed.data;
+  const {
+    baseSalary,
+    otRate,
+    hoursPerDay,
+    workingDaysPerMonth,
+    employmentStartDate,
+    transportAllowance,
+    mealAllowance,
+    otMealAllowance,
+    diligenceAllowance,
+    shiftAllowance,
+  } = parsed.data;
 
   const existing = await db
     .select()
@@ -70,6 +91,11 @@ router.put("/", async (req: AuthRequest, res: Response) => {
         hoursPerDay,
         workingDaysPerMonth,
         employmentStartDate: employmentStartDate ?? null,
+        transportAllowance,
+        mealAllowance,
+        otMealAllowance,
+        diligenceAllowance,
+        shiftAllowance,
         updatedAt: new Date(),
       })
       .where(eq(salarySettingsTable.userId, userId))
@@ -85,6 +111,11 @@ router.put("/", async (req: AuthRequest, res: Response) => {
         hoursPerDay,
         workingDaysPerMonth,
         employmentStartDate: employmentStartDate ?? null,
+        transportAllowance,
+        mealAllowance,
+        otMealAllowance,
+        diligenceAllowance,
+        shiftAllowance,
         updatedAt: new Date(),
       })
       .returning();

@@ -52,30 +52,31 @@ export default function Settings() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-  baseSalary: 15000,
-  otRate: 1.5,
-  hoursPerDay: 8,
-  workingDaysPerMonth: 30,
-  transportAllowance: 0,
-  mealAllowance: 0,
-  otMealAllowance: 0,
-  diligenceAllowance: 0,
-  shiftAllowance: 0,
-},
+      baseSalary: 15000,
+      otRate: 1.5,
+      hoursPerDay: 8,
+      workingDaysPerMonth: 30,
+      transportAllowance: 0,
+      mealAllowance: 0,
+      otMealAllowance: 0,
+      diligenceAllowance: 0,
+      shiftAllowance: 0,
+    },
   });
+
   useEffect(() => {
     if (settings) {
       form.reset({
-  baseSalary: settings.baseSalary,
-  otRate: settings.otRate,
-  hoursPerDay: settings.hoursPerDay,
-  workingDaysPerMonth: settings.workingDaysPerMonth,
-  transportAllowance: (settings as any).transportAllowance ?? 0,
-  mealAllowance: (settings as any).mealAllowance ?? 0,
-  otMealAllowance: (settings as any).otMealAllowance ?? 0,
-  diligenceAllowance: (settings as any).diligenceAllowance ?? 0,
-  shiftAllowance: (settings as any).shiftAllowance ?? 0,
-});
+        baseSalary: settings.baseSalary,
+        otRate: settings.otRate,
+        hoursPerDay: settings.hoursPerDay,
+        workingDaysPerMonth: settings.workingDaysPerMonth,
+        transportAllowance: (settings as any).transportAllowance ?? 0,
+        mealAllowance: (settings as any).mealAllowance ?? 0,
+        otMealAllowance: (settings as any).otMealAllowance ?? 0,
+        diligenceAllowance: (settings as any).diligenceAllowance ?? 0,
+        shiftAllowance: (settings as any).shiftAllowance ?? 0,
+      });
       const s = settings as any;
       if (s.employmentStartDate) setStartDate(s.employmentStartDate);
     }
@@ -89,17 +90,10 @@ export default function Settings() {
           queryClient.setQueryData(getGetSettingsQueryKey(), data);
           queryClient.invalidateQueries({ queryKey: getGetMonthlySummaryQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetYearlySummaryQueryKey() });
-          toast({
-            title: "บันทึกการตั้งค่าสำเร็จ",
-            description: "ข้อมูลจะถูกนำไปใช้คำนวณ OT ของคุณ",
-          });
+          toast({ title: "บันทึกการตั้งค่าสำเร็จ" });
         },
         onError: () => {
-          toast({
-            title: "เกิดข้อผิดพลาด",
-            description: "ไม่สามารถบันทึกการตั้งค่าได้",
-            variant: "destructive",
-          });
+          toast({ title: "เกิดข้อผิดพลาด", variant: "destructive" });
         },
       }
     );
@@ -117,13 +111,18 @@ export default function Settings() {
           otRate: currentValues.otRate,
           hoursPerDay: currentValues.hoursPerDay,
           workingDaysPerMonth: currentValues.workingDaysPerMonth,
+          transportAllowance: currentValues.transportAllowance,
+          mealAllowance: currentValues.mealAllowance,
+          otMealAllowance: currentValues.otMealAllowance,
+          diligenceAllowance: currentValues.diligenceAllowance,
+          shiftAllowance: currentValues.shiftAllowance,
           employmentStartDate: startDate || null,
         }),
       });
       if (!res.ok) throw new Error("บันทึกไม่สำเร็จ");
       const data = await res.json();
       queryClient.setQueryData(getGetSettingsQueryKey(), data);
-      toast({ title: "บันทึกวันเริ่มงานสำเร็จ", description: "ระบบจะคำนวณตารางกะอัตโนมัติ" });
+      toast({ title: "บันทึกวันเริ่มงานสำเร็จ" });
     } catch (e: any) {
       toast({ title: "เกิดข้อผิดพลาด", description: e.message, variant: "destructive" });
     } finally {
@@ -135,7 +134,7 @@ export default function Settings() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">ตั้งค่า</h1>
-        <p className="text-muted-foreground mt-1">กำหนดฐานเงินเดือน อัตราการคำนวณ และตารางกะอัตโนมัติ</p>
+        <p className="text-muted-foreground mt-1">กำหนดฐานเงินเดือน สวัสดิการ และตารางกะอัตโนมัติ</p>
       </div>
 
       {/* Shift Schedule Settings */}
@@ -146,7 +145,7 @@ export default function Settings() {
             ตารางกะอัตโนมัติ
           </CardTitle>
           <CardDescription>
-            ระบบจะคำนวณกะ D/N/S อัตโนมัติ — ทำงาน 6 วัน หยุด 1 วัน, กะกลางวัน 14 วัน → กะกลางคืน 14 วัน สลับกัน
+            ระบบจะคำนวณกะ D/N/S อัตโนมัติ — ทำงาน 6 วัน หยุด 1 วัน สลับกัน
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -156,7 +155,7 @@ export default function Settings() {
             <div className="flex gap-3 items-end">
               <div className="flex-1 space-y-2">
                 <label className="text-sm font-medium" htmlFor="start-date">
-                  วันเริ่มทำงาน (วันแรกที่เข้าทำงาน)
+                  วันเริ่มทำงาน
                 </label>
                 <Input
                   id="start-date"
@@ -164,9 +163,6 @@ export default function Settings() {
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  ระบบจะนับวันกะตั้งแต่วันนี้เป็นต้นไป
-                </p>
               </div>
               <Button onClick={saveStartDateOnly} disabled={savingStartDate || !startDate} className="shrink-0">
                 {savingStartDate ? "กำลังบันทึก..." : "บันทึก"}
@@ -180,42 +176,95 @@ export default function Settings() {
       <Card className="bg-card">
         <CardHeader>
           <CardTitle>ข้อมูลสำหรับการคำนวณ</CardTitle>
-          <CardDescription>สูตรคำนวณ: (ฐานเงินเดือน ÷ วันทำงาน ÷ ชั่วโมงทำงาน) × อัตรา OT</CardDescription>
+          <CardDescription>กรอกฐานเงินเดือนและสวัสดิการเพื่อคำนวณรายได้สุทธิ</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
             </div>
           ) : (
             <Form {...form}>
-  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-    <FormField
-      control={form.control}
-      name="baseSalary"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
-          <FormControl>
-            <Input type="number" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-    <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
-      {upsertMutation.isPending ? (
-        <span className="flex items-center gap-2">กำลังบันทึก...</span>
-      ) : (
-        <span className="flex items-center gap-2"><Save className="h-4 w-4" /> บันทึกการตั้งค่า</span>
-      )}
-    </Button>
-  </form>
-</Form>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="baseSalary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
+                      <FormControl><Input type="number" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                {/* สวัสดิการ */}
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold mb-4">สวัสดิการ (บาท/วัน)</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField control={form.control} name="transportAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ค่าเดินทาง</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>จ่ายเมื่อมาทำงาน D, N, DS, NS, DH, NH</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField control={form.control} name="mealAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ค่าข้าว</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>จ่ายเมื่อมาทำงาน D, N, DS, NS, DH, NH</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField control={form.control} name="otMealAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ค่าข้าวโอที</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>จ่ายเมื่อมี OT (ชั่วโมง &gt; 0)</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField control={form.control} name="diligenceAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>เบี้ยขยัน</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField control={form.control} name="shiftAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ค่ากะ</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>จ่ายเมื่อเข้ากะดึก N, NS, NH</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
+                <Button type="submit" className="w-full sm:w-auto" disabled={upsertMutation.isPending}>
+                  {upsertMutation.isPending ? "กำลังบันทึก..." : (
+                    <span className="flex items-center gap-2">
+                      <Save className="h-4 w-4" /> บันทึกการตั้งค่า
+                    </span>
+                  )}
+                </Button>
+              </form>
+            </Form>
           )}
         </CardContent>
       </Card>
