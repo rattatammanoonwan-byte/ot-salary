@@ -202,6 +202,95 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
+      {/* Welfare Breakdown */}
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-base">สรุปค่าสวัสดิการแยกประเภท</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-1 text-sm">
+              {/* 1. ค่าเดินทาง */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-muted-foreground">ค่าเดินทาง</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.transportAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* 2. ค่าข้าว */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+                  <span className="text-muted-foreground">ค่าข้าว</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.mealAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* 3. ค่าข้าวโอที */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-muted-foreground">ค่าข้าวโอที</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.otMealAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* 4. เบี้ยขยัน */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                  <span className="text-muted-foreground">เบี้ยขยัน</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.diligenceAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* 5. ค่ากะ */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                  <span className="text-muted-foreground">ค่ากะ</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.shiftAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* Total Welfare */}
+              <div className="flex items-center justify-between py-2 pt-3">
+                <span className="font-semibold text-foreground">รวมค่าสวัสดิการทั้งหมด</span>
+                <span className="font-bold text-lg text-emerald-600 w-24 text-right">
+                  {formatTHB(
+                    (s?.transportAllowance || 0) +
+                    (s?.mealAllowance || 0) +
+                    (s?.otMealAllowance || 0) +
+                    (s?.diligenceAllowance || 0) +
+                    (s?.shiftAllowance || 0)
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Recent entries */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 bg-card">
