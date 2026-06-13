@@ -137,7 +137,7 @@ export default function Dashboard() {
           <CardContent>
             {isLoading ? <Skeleton className="h-8 w-[120px]" /> : (
               <>
-                <div className="font-semibold text-foreground">{formatTHB(s?.totalAllowances || 0)}</div>
+                <div className="text-2xl font-bold text-primary">{formatTHB(s?.totalAllowances || 0)}</div>
                 <p className="text-xs text-muted-foreground mt-1"></p>
               </>
             )}
