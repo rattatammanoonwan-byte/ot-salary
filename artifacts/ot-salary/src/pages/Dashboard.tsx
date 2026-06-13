@@ -225,7 +225,8 @@ export default function Dashboard() {
                   <span className="text-muted-foreground">ค่าเดินทาง</span>
                 </div>
                 <div className="flex items-center gap-6 text-right">
-                  <span className="font-semibold w-24">{formatTHB(s?.transportAllowance || 0)}</span>
+                  {/* เปลี่ยนจาก transportAllowance เป็น totalTransport */}
+                  <span className="font-semibold w-24">{formatTHB(s?.totalTransport || 0)}</span>
                 </div>
               </div>
 
@@ -236,7 +237,8 @@ export default function Dashboard() {
                   <span className="text-muted-foreground">ค่าข้าว</span>
                 </div>
                 <div className="flex items-center gap-6 text-right">
-                  <span className="font-semibold w-24">{formatTHB(s?.mealAllowance || 0)}</span>
+                  {/* เปลี่ยนจาก mealAllowance เป็น totalMeal */}
+                  <span className="font-semibold w-24">{formatTHB(s?.totalMeal || 0)}</span>
                 </div>
               </div>
 
@@ -247,7 +249,8 @@ export default function Dashboard() {
                   <span className="text-muted-foreground">ค่าข้าวโอที</span>
                 </div>
                 <div className="flex items-center gap-6 text-right">
-                  <span className="font-semibold w-24">{formatTHB(s?.otMealAllowance || 0)}</span>
+                  {/* เปลี่ยนจาก otMealAllowance เป็น totalOtMeal */}
+                  <span className="font-semibold w-24">{formatTHB(s?.totalOtMeal || 0)}</span>
                 </div>
               </div>
 
@@ -269,7 +272,8 @@ export default function Dashboard() {
                   <span className="text-muted-foreground">ค่ากะ</span>
                 </div>
                 <div className="flex items-center gap-6 text-right">
-                  <span className="font-semibold w-24">{formatTHB(s?.shiftAllowance || 0)}</span>
+                  {/* เปลี่ยนจาก shiftAllowance เป็น totalShiftAllowance */}
+                  <span className="font-semibold w-24">{formatTHB(s?.totalShiftAllowance || 0)}</span>
                 </div>
               </div>
 
@@ -277,13 +281,8 @@ export default function Dashboard() {
               <div className="flex items-center justify-between py-2 pt-3">
                 <span className="font-semibold text-foreground">รวมค่าสวัสดิการทั้งหมด</span>
                 <span className="font-bold text-lg text-emerald-600 w-24 text-right">
-                  {formatTHB(
-                    (s?.transportAllowance || 0) +
-                    (s?.mealAllowance || 0) +
-                    (s?.otMealAllowance || 0) +
-                    (s?.diligenceAllowance || 0) +
-                    (s?.shiftAllowance || 0)
-                  )}
+                  {/* ปรับมาใช้ตัวแปรสรุปยอดรวมจากหลังบ้านโดยตรง */}
+                  {formatTHB(s?.totalAllowances || 0)}
                 </span>
               </div>
             </div>
