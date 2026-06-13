@@ -355,7 +355,7 @@ export default function Calendar() {
             ตารางกะ
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            คลิกวันเพื่อบันทึก OT และหมายเหตุ
+            คลิกวันเพื่อบันทึก กะ การทำงาน และหมายเหตุ (หลังจากบันทึก รูปแบบ กะ จะเปลี่ยนเป็นสีเข้ม)
           </p>
         </div>
         {!employmentStartDate && (
