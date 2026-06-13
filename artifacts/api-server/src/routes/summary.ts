@@ -85,7 +85,7 @@ async function buildMonthlySummary(
       
       // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท (ตัวอย่างนี้ปรับเป็น 2 เท่า)
       // หากบริษัทของคุณให้ 1 เท่าเหมือนเดิม สามารถเปลี่ยนเลข 2 กลับเป็น 1 ได้ครับ
-      holidayBase8Pay   += b8 * hourlyRate * 2; 
+      holidayBase8Pay   += b8 * hourlyRate * 1; 
       
       holidayExtraHours += ex;
       holidayExtraPay   += ex * 3 * hourlyRate; // โอทีเกิน 8 ชม. วันหยุด คิด 3 เท่าตามกฎหมาย
