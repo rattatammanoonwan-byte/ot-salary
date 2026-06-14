@@ -36,7 +36,7 @@ async function buildMonthlySummary(
   const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance, extraAllowance, bonusAllowance } = settings;
   const { start, end, payDate } = payPeriodRange(month);
 
-  // ดึงข้อมูล OT entries (ปรับปรุงให้ใช้ gte/lte ร่วมกับ cast date เพื่อความปลอดภัยของ timezone)
+  // ดึงข้อมูล OT entries
   const otRows = await db
     .select()
     .from(otEntriesTable)
@@ -85,8 +85,7 @@ async function buildMonthlySummary(
       const ex = Math.max(0, r.hours - 8);
       holidayBase8Hours += b8;
       
-      // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท (ตัวอย่างนี้ปรับเป็น 2 เท่า)
-      // หากบริษัทของคุณให้ 1 เท่าเหมือนเดิม สามารถเปลี่ยนเลข 2 กลับเป็น 1 ได้ครับ
+      // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท
       holidayBase8Pay   += b8 * hourlyRate * 1; 
       
       holidayExtraHours += ex;
@@ -112,16 +111,24 @@ async function buildMonthlySummary(
     }
   }
 
-  // 📌 จุดแก้ไข: นับค่าข้าวโอที โดยตั้งเงื่อนไขขั้นต่ำ (เช่น ต้องทำโอทีมากกว่า 2 ชั่วโมงขึ้นไปในวันนั้น)
+  // นับค่าข้าวโอที โดยตั้งเงื่อนไขขั้นต่ำ
   const MIN_OT_HOURS_FOR_MEAL = 2; 
   const otDates = new Set(
     otRows.filter(r => r.hours >= MIN_OT_HOURS_FOR_MEAL).map(r => r.date)
   );
   const totalOtMeal = otDates.size * otMealAllowance;
 
-  // รวมเงินสวัสดิการทั้งหมด
+  // 🟢 [จุดที่แก้ไข] บวก extraAllowance และ bonusAllowance เพิ่มเข้าไปในยอดรวมสวัสดิการตรงนี้ครับ
   const totalAllowances = parseFloat(
-    (totalTransport + totalMeal + totalOtMeal + diligenceAllowance + totalShiftAllowance).toFixed(2)
+    (
+      totalTransport + 
+      totalMeal + 
+      totalOtMeal + 
+      diligenceAllowance + 
+      totalShiftAllowance + 
+      extraAllowance + 
+      bonusAllowance
+    ).toFixed(2)
   );
 
   const round = (n: number) => parseFloat(n.toFixed(2));
@@ -134,7 +141,7 @@ async function buildMonthlySummary(
     baseSalary,
     totalOtHours:         round(totalOtHours),
     totalOtPay:           round(totalOtPay),
-    totalSalary:          round(baseSalary + totalOtPay + totalAllowances),
+    totalSalary:          round(baseSalary + totalOtPay + totalAllowances), // ตัวนี้จะปรับเพิ่มขึ้นอัตโนมัติจาก totalAllowances
     regularOtHours:       round(regularOtHours),
     regularOtPay:         round(regularOtPay),
     holidayBase8Hours:    round(holidayBase8Hours),
@@ -152,8 +159,6 @@ async function buildMonthlySummary(
     entriesCount: otRows.length,
   };
 }
-
-// ... ส่วนของ router.get ยังคงใช้โครงสร้างเดิมได้เลยครับ ...
 
 router.get("/", async (req: AuthRequest, res: Response) => {
   const userId = String(req.userId!);
