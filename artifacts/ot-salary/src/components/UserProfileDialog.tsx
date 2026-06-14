@@ -79,7 +79,7 @@ export function UserProfileDialog({ isOpen, onClose, defaultData, onSave }: User
                 <FormItem>
                   <FormLabel className="font-semibold text-foreground">ชื่อ - นามสกุลจริง</FormLabel>
                   <FormControl>
-                    <Input placeholder="เช่น นายสมชาย ตั้งใจทำงาน" {...field} className="w-full" />
+                    <Input placeholder="เช่น นายประยุทธ์ จันอังคารพุธ" {...field} className="w-full" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
