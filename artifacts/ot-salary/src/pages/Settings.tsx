@@ -142,43 +142,8 @@ export default function Settings() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">ตั้งค่า</h1>
-        <p className="text-muted-foreground mt-1">กำหนดฐานเงินเดือน สวัสดิการ และตารางกะอัตโนมัติ</p>
+        <p className="text-muted-foreground mt-1">กำหนดฐานเงินเดือน สวัสดิการ</p>
       </div>
-
-      {/* Shift Schedule Settings */}
-      <Card className="bg-card border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-primary" />
-            ตารางกะอัตโนมัติ
-          </CardTitle>
-          <CardDescription>
-            ระบบจะคำนวณกะ D/N/S อัตโนมัติ — ทำงาน 6 วัน หยุด 1 วัน สลับกัน
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <Skeleton className="h-10 w-full" />
-          ) : (
-            <div className="flex gap-3 items-end">
-              <div className="flex-1 space-y-2">
-                <label className="text-sm font-medium" htmlFor="start-date">
-                  วันเริ่มทำงาน
-                </label>
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <Button onClick={saveStartDateOnly} disabled={savingStartDate || !startDate} className="shrink-0">
-                {savingStartDate ? "กำลังบันทึก..." : "บันทึก"}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Salary Settings */}
       <Card className="bg-card">
