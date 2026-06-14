@@ -29,9 +29,11 @@ async function buildMonthlySummary(
     otMealAllowance: number;
     diligenceAllowance: number;
     shiftAllowance: number;
+    extraAllowance: number;
+    bonusAllowance: number;
   }
 ) {
-  const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance } = settings;
+  const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance, extraAllowance, bonusAllowance } = settings;
   const { start, end, payDate } = payPeriodRange(month);
 
   // ดึงข้อมูล OT entries (ปรับปรุงให้ใช้ gte/lte ร่วมกับ cast date เพื่อความปลอดภัยของ timezone)
@@ -144,6 +146,8 @@ async function buildMonthlySummary(
     totalOtMeal:          round(totalOtMeal),
     diligenceAllowance:   round(diligenceAllowance),
     totalShiftAllowance:  round(totalShiftAllowance),
+    extraAllowance:       round(extraAllowance),
+    bonusAllowance:       round(bonusAllowance),
     totalAllowances,
     entriesCount: otRows.length,
   };
@@ -170,6 +174,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     otMealAllowance:     s?.otMealAllowance ?? 0,
     diligenceAllowance:  s?.diligenceAllowance ?? 0,
     shiftAllowance:      s?.shiftAllowance ?? 0,
+    extraAllowance:      s?.extraAllowance ?? 0,
+    bonusAllowance:      s?.bonusAllowance ?? 0,
   };
 
   const summary = await buildMonthlySummary(userId, month, settings);
@@ -195,6 +201,8 @@ router.get("/yearly", async (req: AuthRequest, res: Response) => {
     otMealAllowance:     s?.otMealAllowance ?? 0,
     diligenceAllowance:  s?.diligenceAllowance ?? 0,
     shiftAllowance:      s?.shiftAllowance ?? 0,
+    extraAllowance:      s?.extraAllowance ?? 0,
+    bonusAllowance:      s?.bonusAllowance ?? 0,
   };
 
   const months = Array.from({ length: 12 }, (_, i) => {

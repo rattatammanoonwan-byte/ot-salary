@@ -15,6 +15,8 @@ export const salarySettingsTable = pgTable("salary_settings", {
   otMealAllowance: real("ot_meal_allowance").notNull().default(0),
   diligenceAllowance: real("diligence_allowance").notNull().default(0),
   shiftAllowance: real("shift_allowance").notNull().default(0),
+  extraAllowance: real("extra_allowance").notNull().default(0),
+  bonusAllowance: real("bonus_allowance").notNull().default(0),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

@@ -18,6 +18,9 @@ const settingsInputSchema = z.object({
   otMealAllowance: z.number().min(0).default(0),
   diligenceAllowance: z.number().min(0).default(0),
   shiftAllowance: z.number().min(0).default(0),
+  extraAllowance: z.number().min(0).default(0),
+  bonusAllowance: z.number().min(0).default(0),
+
 });
 
 function formatRow(s: typeof salarySettingsTable.$inferSelect) {
@@ -34,6 +37,8 @@ function formatRow(s: typeof salarySettingsTable.$inferSelect) {
     otMealAllowance: s.otMealAllowance ?? 0,
     diligenceAllowance: s.diligenceAllowance ?? 0,
     shiftAllowance: s.shiftAllowance ?? 0,
+    extraAllowance: s.extraAllowance ?? 0,
+    bonusAllowance: s.bonusAllowance ?? 0,
     updatedAt: s.updatedAt.toISOString(),
   };
 }
@@ -73,6 +78,8 @@ router.put("/", async (req: AuthRequest, res: Response) => {
     otMealAllowance,
     diligenceAllowance,
     shiftAllowance,
+    extraAllowance ,
+    bonusAllowance,
   } = parsed.data;
 
   const existing = await db
@@ -96,6 +103,8 @@ router.put("/", async (req: AuthRequest, res: Response) => {
         otMealAllowance,
         diligenceAllowance,
         shiftAllowance,
+        extraAllowance,
+        bonusAllowance,
         updatedAt: new Date(),
       })
       .where(eq(salarySettingsTable.userId, userId))
@@ -116,6 +125,8 @@ router.put("/", async (req: AuthRequest, res: Response) => {
         otMealAllowance,
         diligenceAllowance,
         shiftAllowance,
+        extraAllowance,
+        bonusAllowance,
         updatedAt: new Date(),
       })
       .returning();

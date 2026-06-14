@@ -38,6 +38,8 @@ const formSchema = z.object({
   otMealAllowance: z.coerce.number().min(0).default(0),
   diligenceAllowance: z.coerce.number().min(0).default(0),
   shiftAllowance: z.coerce.number().min(0).default(0),
+  extraAllowance: z.coerce.number().min(0).default(0),
+  bonusAllowance: z.coerce.number().min(0).default(0),
 });
 
 export default function Settings() {
@@ -61,6 +63,8 @@ export default function Settings() {
       otMealAllowance: 0,
       diligenceAllowance: 0,
       shiftAllowance: 0,
+      extraAllowance: 0,
+      bonusAllowance: 0,
     },
   });
 
@@ -76,6 +80,8 @@ export default function Settings() {
         otMealAllowance: (settings as any).otMealAllowance ?? 0,
         diligenceAllowance: (settings as any).diligenceAllowance ?? 0,
         shiftAllowance: (settings as any).shiftAllowance ?? 0,
+        extraAllowance: (settings as any).extraAllowance ?? 0,
+        bonusAllowance: (settings as any).bonusAllowance ?? 0,
       });
       const s = settings as any;
       if (s.employmentStartDate) setStartDate(s.employmentStartDate);
@@ -116,6 +122,8 @@ export default function Settings() {
           otMealAllowance: currentValues.otMealAllowance,
           diligenceAllowance: currentValues.diligenceAllowance,
           shiftAllowance: currentValues.shiftAllowance,
+          extraAllowance: currentValues.extraAllowance,
+          bonusAllowance: currentValues.bonusAllowance,
           employmentStartDate: startDate || null,
         }),
       });
@@ -249,6 +257,26 @@ export default function Settings() {
                           <FormLabel>ค่ากะ</FormLabel>
                           <FormControl><Input type="number" {...field} /></FormControl>
                           <FormDescription>จ่ายเมื่อเข้ากะดึก N, NS, NH</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                      <FormField control={form.control} name="extraAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>เบี้ยเลี้ยงพิเศษ</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                      <FormField control={form.control} name="bonusAllowance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>โบนัสเบี้ยเลี้ยง</FormLabel>
+                          <FormControl><Input type="number" {...field} /></FormControl>
+                          <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

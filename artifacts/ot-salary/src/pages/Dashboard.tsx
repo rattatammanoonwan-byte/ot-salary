@@ -277,6 +277,28 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* 6. เบี้ยเลี้ยงพิเศษ */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                  <span className="text-muted-foreground">เบี้ยเลี้ยงพิเศษ</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.extraAllowance || 0)}</span>
+                </div>
+              </div>
+
+              {/* 7. โบนัสเบี้ยเลี้ยง */}
+              <div className="flex items-center justify-between py-2 border-b">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                  <span className="text-muted-foreground">โบนัสเบี้ยเลี้ยง</span>
+                </div>
+                <div className="flex items-center gap-6 text-right">
+                  <span className="font-semibold w-24">{formatTHB(s?.bonusAllowance || 0)}</span>
+                </div>
+              </div>
+
               {/* Total Welfare */}
               <div className="flex items-center justify-between py-2 pt-3">
                 <span className="font-semibold text-foreground">รวมค่าสวัสดิการทั้งหมด</span>
