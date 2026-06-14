@@ -27,6 +27,18 @@ export function UserProfileDialog({ isOpen, onClose, defaultData, onSave }: User
     }
   });
 
+  // ✨ ซ่อมจุดบกพร่อง: บังคับอัปเดตค่าในฟอร์มเมื่อข้อมูลโหลดมาจาก Database สำเร็จ
+  React.useEffect(() => {
+    if (defaultData) {
+      form.reset({
+        fullName: defaultData.fullName || "",
+        employmentStartDate: defaultData.employmentStartDate || "",
+        profileImage: defaultData.profileImage || "",
+      });
+      setPreviewImage(defaultData.profileImage || "");
+    }
+  }, [defaultData, form]);
+
   // ฟังก์ชันแปลงรูปภาพเป็น Base64 string เพื่อส่งไปเซฟในฐานข้อมูล
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

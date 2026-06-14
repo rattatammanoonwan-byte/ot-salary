@@ -5,11 +5,9 @@ import { useTheme } from "../theme-provider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
-// 🟢 เปลี่ยนเป็นแบบนี้ครับ ถอย 1 ชั้นพ้นจากโฟลเดอร์ layout จะเจอไฟล์ทันที
 import { UserProfileDialog } from "../UserProfileDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// 🟢 เพิ่มหน้า "ข้อมูลผู้ใช้งาน" เข้ามาเป็นหนึ่งในเมนูหลักอย่างเป็นทางการ
 const NAV_ITEMS = [
   { href: "/calendar", label: "ตารางกะ", icon: CalendarDays },
   { href: "/dashboard", label: "ภาพรวม", icon: Home },
@@ -24,48 +22,52 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const queryClient = useQueryClient();
 
-  // 🟢 State สำหรับควบคุมการเปิด-ปิดหน้าต่าง Popup
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
-  // 🟢 ดึงข้อมูลการตั้งค่า/โปรไฟล์จากหลังบ้าน
+  // ดึงข้อมูลการตั้งค่า/โปรไฟล์จากหลังบ้าน
   const { data: settings } = useQuery<any>({
     queryKey: ["/api/salary-settings"],
   });
 
-  // 🟢 Mutation สั่งบันทึกข้อมูลอัปเดตลงฐานข้อมูล
+  // ✨ Mutation บันทึกข้อมูลโปรไฟล์
   const updateProfileMutation = useMutation({
     mutationFn: async (updatedData: any) => {
       const finalPayload = {
-        ...settings,
+        ...(settings || {}),
         fullName: updatedData.fullName,
         employmentStartDate: updatedData.employmentStartDate,
         profileImage: updatedData.profileImage,
       };
 
       const res = await fetch("/api/salary-settings", {
-        method: "PUT",
+        method: "PUT", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalPayload),
       });
-      if (!res.ok) throw new Error("Failed to update profile");
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Failed to update profile: ${errorText}`);
+      }
       return res.json();
     },
     onSuccess: () => {
-      // รีเฟรชข้อมูลให้แสดงผลชื่อและรูปภาพล่าสุดทันทีแบบ Realtime
+      alert("🎉 บันทึกข้อมูลลงฐานข้อมูลสำเร็จแล้ว!");
       queryClient.invalidateQueries({ queryKey: ["/api/salary-settings"] });
     },
+    onError: (error) => {
+      alert(`❌ ไม่สามารถบันทึกข้อมูลได้: ${error.message}`);
+    }
   });
 
-  // 🟢 ฟังก์ชัน Render รายการเมนู
   const NavLinks = () => (
     <>
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(item.href));
         
-        // 🟢 ถ้าเป็นเมนู ข้อมูลผู้ใช้งาน ดักจับการคลิกเพื่อสั่งเปิด Dialog แทนการเปลี่ยนหน้าเว็บ
         if (item.href === "#user-profile") {
           return (
             <div
@@ -85,7 +87,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           );
         }
 
-        // เมนูทั่วไป เปลี่ยนหน้าตามปกติ
         return (
           <Link key={item.href} href={item.href}>
             <div
@@ -94,7 +95,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               }`}
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              <span>{item.label}</span>
             </div>
           </Link>
         );
@@ -112,7 +113,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
-          </SheetTrigger>
+          </SheetTrigger> {/* 🟢 ซ่อมเสร็จแล้ว: เปลี่ยนกลับเป็น SheetTrigger เรียบร้อยครับ */}
           <SheetContent side="left" className="w-72">
             <div className="flex h-14 items-center border-b px-4">
               <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
@@ -174,7 +175,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
 
-      {/* 🟢 แสดงหน้าต่างจัดการข้อมูลผู้ใช้งานเมื่อมีการกดปุ่มเมนู */}
+      {/* หน้าต่างจัดการข้อมูลผู้ใช้งานเมื่อมีการกดปุ่มเมนู */}
       <UserProfileDialog
         isOpen={isUserDialogOpen}
         onClose={() => setIsUserDialogOpen(false)}
