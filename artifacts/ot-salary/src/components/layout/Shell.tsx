@@ -1,29 +1,91 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { Home, List, Settings as SettingsIcon, LogOut, Moon, Sun, Menu, CalendarDays } from "lucide-react";
+import { Home, List, Settings as SettingsIcon, LogOut, Moon, Sun, Menu, CalendarDays, User } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useState } from "react";
+// 🟢 เปลี่ยนเป็นแบบนี้ครับ ถอย 1 ชั้นพ้นจากโฟลเดอร์ layout จะเจอไฟล์ทันที
+import { UserProfileDialog } from "../UserProfileDialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+// 🟢 เพิ่มหน้า "ข้อมูลผู้ใช้งาน" เข้ามาเป็นหนึ่งในเมนูหลักอย่างเป็นทางการ
 const NAV_ITEMS = [
   { href: "/calendar", label: "ตารางกะ", icon: CalendarDays },
   { href: "/dashboard", label: "ภาพรวม", icon: Home },
   { href: "/entries", label: "บันทึก OT", icon: List },
   { href: "/settings", label: "ตั้งค่า", icon: SettingsIcon },
+  { href: "#user-profile", label: "ข้อมูลผู้ใช้งาน", icon: User }, 
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const queryClient = useQueryClient();
+
+  // 🟢 State สำหรับควบคุมการเปิด-ปิดหน้าต่าง Popup
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
+  // 🟢 ดึงข้อมูลการตั้งค่า/โปรไฟล์จากหลังบ้าน
+  const { data: settings } = useQuery<any>({
+    queryKey: ["/api/salary-settings"],
+  });
+
+  // 🟢 Mutation สั่งบันทึกข้อมูลอัปเดตลงฐานข้อมูล
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      const finalPayload = {
+        ...settings,
+        fullName: updatedData.fullName,
+        employmentStartDate: updatedData.employmentStartDate,
+        profileImage: updatedData.profileImage,
+      };
+
+      const res = await fetch("/api/salary-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalPayload),
+      });
+      if (!res.ok) throw new Error("Failed to update profile");
+      return res.json();
+    },
+    onSuccess: () => {
+      // รีเฟรชข้อมูลให้แสดงผลชื่อและรูปภาพล่าสุดทันทีแบบ Realtime
+      queryClient.invalidateQueries({ queryKey: ["/api/salary-settings"] });
+    },
+  });
+
+  // 🟢 ฟังก์ชัน Render รายการเมนู
   const NavLinks = () => (
     <>
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = location === item.href || (item.href !== "/dashboard" && location.startsWith(item.href));
+        
+        // 🟢 ถ้าเป็นเมนู ข้อมูลผู้ใช้งาน ดักจับการคลิกเพื่อสั่งเปิด Dialog แทนการเปลี่ยนหน้าเว็บ
+        if (item.href === "#user-profile") {
+          return (
+            <div
+              key={item.href}
+              onClick={() => setIsUserDialogOpen(true)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-primary transition-all cursor-pointer font-medium"
+            >
+              <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                {settings?.profileImage ? (
+                  <img src={settings.profileImage} alt="Miniprofile" className="w-full h-full object-cover" />
+                ) : (
+                  <Icon className="h-4 w-4" />
+                )}
+              </div>
+              <span>{settings?.fullName || item.label}</span>
+            </div>
+          );
+        }
+
+        // เมนูทั่วไป เปลี่ยนหน้าตามปกติ
         return (
           <Link key={item.href} href={item.href}>
             <div
@@ -111,6 +173,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* 🟢 แสดงหน้าต่างจัดการข้อมูลผู้ใช้งานเมื่อมีการกดปุ่มเมนู */}
+      <UserProfileDialog
+        isOpen={isUserDialogOpen}
+        onClose={() => setIsUserDialogOpen(false)}
+        defaultData={{
+          fullName: settings?.fullName,
+          employmentStartDate: settings?.employmentStartDate,
+          profileImage: settings?.profileImage,
+        }}
+        onSave={(data: any) => updateProfileMutation.mutate(data)}
+      />
     </div>
   );
 }
