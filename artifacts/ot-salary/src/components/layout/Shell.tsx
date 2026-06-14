@@ -26,31 +26,47 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
-  // ดึงข้อมูลการตั้งค่า/โปรไฟล์จากหลังบ้าน
-  const { data: settings } = useQuery<any>({
-    queryKey: ["/api/salary-settings"],
+  const { token } = useAuth();
+
+  const { data: profile } = useQuery<any>({
+    queryKey: ["/api/settings", token],
+    enabled: !!token,
+    queryFn: async () => {
+      const res = await fetch("/api/settings", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
   });
 
-  // ✨ ซ่อมแซมระบบส่ง Payload: คัดรูปภาพเก่าที่บวมเกินทิ้งไป ส่งเฉพาะข้อมูลชุดล่าสุดที่ผ่านการย่อยแล้ว
   const updateProfileMutation = useMutation({
     mutationFn: async (updatedData: any) => {
-      // ดึงค่าคอนฟิกอื่นๆ มา แต่ออกคำสั่งละเว้น (Omit) รูปโปรไฟล์เก่าทิ้งไปเพื่อลดขนาด Payload 
-      const { profileImage: oldImage, ...remainingSettings } = settings || {};
-
-      const finalPayload = {
-        ...remainingSettings, // นำค่า config อื่นๆ ที่ไม่ใช่รูปเก่ามาวาง
-        fullName: updatedData.fullName,
-        employmentStartDate: updatedData.employmentStartDate,
-        profileImage: updatedData.profileImage, // ใช้รูปใหม่ที่ผ่านการบีบอัดมาจากไดอะล็อกเรียบร้อยแล้ว
-      };
-
-      // 🟢 ใช้ POST เพื่อส่งเข้าประตูหลักของ API หลังบ้านคุณ
-      const res = await fetch("/api/salary-settings", {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalPayload),
+      const current = profile ?? {};
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          baseSalary: current.baseSalary ?? 0,
+          otRate: current.otRate ?? 1.5,
+          hoursPerDay: current.hoursPerDay ?? 8,
+          workingDaysPerMonth: current.workingDaysPerMonth ?? 26,
+          transportAllowance: current.transportAllowance ?? 0,
+          mealAllowance: current.mealAllowance ?? 0,
+          otMealAllowance: current.otMealAllowance ?? 0,
+          diligenceAllowance: current.diligenceAllowance ?? 0,
+          shiftAllowance: current.shiftAllowance ?? 0,
+          extraAllowance: current.extraAllowance ?? 0,
+          bonusAllowance: current.bonusAllowance ?? 0,
+          fullName: updatedData.fullName ?? null,
+          employmentStartDate: updatedData.employmentStartDate ?? null,
+          profileImage: updatedData.profileImage ?? null,
+        }),
       });
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Failed to update profile: ${errorText}`);
@@ -58,13 +74,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       return res.json();
     },
     onSuccess: () => {
-      alert("🎉 บันทึกข้อมูลลงฐานข้อมูลสำเร็จแล้ว!");
-      // รีเฟรชข้อมูลให้แสดงผลชื่อและรูปภาพล่าสุดทันทีแบบ Realtime ทั่วทั้งแอป
-      queryClient.invalidateQueries({ queryKey: ["/api/salary-settings"] });
+      alert("บันทึกข้อมูลสำเร็จ");
+      queryClient.invalidateQueries({ queryKey: ["/api/settings", token] });
     },
     onError: (error) => {
-      alert(`❌ ไม่สามารถบันทึกข้อมูลได้: ${error.message}`);
-    }
+      alert(`ไม่สามารถบันทึกข้อมูลได้: ${error.message}`);
+    },
   });
 
   const NavLinks = () => (
@@ -81,13 +96,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted hover:text-primary transition-all cursor-pointer font-medium"
             >
               <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
-                {settings?.profileImage ? (
-                  <img src={settings.profileImage} alt="Miniprofile" className="w-full h-full object-cover" />
+                {profile?.profileImage ? (
+                  <img src={profile.profileImage} alt="Miniprofile" className="w-full h-full object-cover" />
                 ) : (
                   <Icon className="h-4 w-4" />
                 )}
               </div>
-              <span>{settings?.fullName || item.label}</span>
+              <span>{profile?.fullName || item.label}</span>
             </div>
           );
         }
@@ -185,9 +200,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         isOpen={isUserDialogOpen}
         onClose={() => setIsUserDialogOpen(false)}
         defaultData={{
-          fullName: settings?.fullName,
-          employmentStartDate: settings?.employmentStartDate,
-          profileImage: settings?.profileImage,
+          fullName: profile?.fullName,
+          employmentStartDate: profile?.employmentStartDate,
+          profileImage: profile?.profileImage,
         }}
         onSave={(data: any) => updateProfileMutation.mutate(data)}
       />

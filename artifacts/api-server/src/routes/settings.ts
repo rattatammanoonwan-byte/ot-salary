@@ -18,13 +18,17 @@ router.use(requireAuth);
 
 const settingsInputSchema = z.object({
 
-  baseSalary: z.number().positive(),
+  fullName: z.string().max(200).nullable().optional(),
 
-  otRate: z.number().positive(),
+  profileImage: z.string().nullable().optional(),
 
-  hoursPerDay: z.number().positive(),
+  baseSalary: z.number().min(0),
 
-  workingDaysPerMonth: z.number().positive(),
+  otRate: z.number().min(0).default(1.5),
+
+  hoursPerDay: z.number().min(0).default(8),
+
+  workingDaysPerMonth: z.number().min(0).default(26),
 
   employmentStartDate: z.string().nullable().optional(),
 
@@ -55,6 +59,10 @@ function formatRow(s: typeof salarySettingsTable.$inferSelect) {
     id: s.id,
 
     userId: s.userId,
+
+    fullName: s.fullName ?? null,
+
+    profileImage: s.profileImage ?? null,
 
     baseSalary: s.baseSalary,
 
@@ -138,6 +146,10 @@ router.put("/", async (req: AuthRequest, res: Response) => {
 
   const {
 
+    fullName,
+
+    profileImage,
+
     baseSalary,
 
     otRate,
@@ -158,7 +170,7 @@ router.put("/", async (req: AuthRequest, res: Response) => {
 
     shiftAllowance,
 
-    extraAllowance ,
+    extraAllowance,
 
     bonusAllowance,
 
@@ -187,6 +199,10 @@ router.put("/", async (req: AuthRequest, res: Response) => {
       .update(salarySettingsTable)
 
       .set({
+
+        fullName: fullName ?? null,
+
+        profileImage: profileImage ?? null,
 
         baseSalary,
 
@@ -231,6 +247,10 @@ router.put("/", async (req: AuthRequest, res: Response) => {
       .values({
 
         userId,
+
+        fullName: fullName ?? null,
+
+        profileImage: profileImage ?? null,
 
         baseSalary,
 
