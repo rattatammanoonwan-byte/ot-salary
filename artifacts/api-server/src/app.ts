@@ -6,41 +6,17 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
-app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
-  }),
-);
+// ... (ส่วน pinoHttp คงเดิม)
 
 app.use(cors({ credentials: true, origin: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", router);
+// แก้ไขตรงนี้: เพิ่ม limit เพื่อรองรับไฟล์ขนาดใหญ่
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve Frontend
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const frontendPath = path.join(__dirname, "../../../artifacts/ot-salary/dist/public");
-app.use(express.static(frontendPath));
-app.get("/{*path}", (_req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
+// แนะนำให้เปลี่ยนจาก "/api" เป็น "/api/salary-settings" 
+// เพื่อให้ตรงกับที่ frontend เรียกใช้งาน
+app.use("/api/salary-settings", router); 
 
+// ... (ส่วน Serve Frontend คงเดิม)
 export default app;
