@@ -31,18 +31,22 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     queryKey: ["/api/salary-settings"],
   });
 
-  // ✨ Mutation บันทึกข้อมูลโปรไฟล์
+  // ✨ ซ่อมแซมระบบส่ง Payload: คัดรูปภาพเก่าที่บวมเกินทิ้งไป ส่งเฉพาะข้อมูลชุดล่าสุดที่ผ่านการย่อยแล้ว
   const updateProfileMutation = useMutation({
     mutationFn: async (updatedData: any) => {
+      // ดึงค่าคอนฟิกอื่นๆ มา แต่ออกคำสั่งละเว้น (Omit) รูปโปรไฟล์เก่าทิ้งไปเพื่อลดขนาด Payload 
+      const { profileImage: oldImage, ...remainingSettings } = settings || {};
+
       const finalPayload = {
-        ...(settings || {}),
+        ...remainingSettings, // นำค่า config อื่นๆ ที่ไม่ใช่รูปเก่ามาวาง
         fullName: updatedData.fullName,
         employmentStartDate: updatedData.employmentStartDate,
-        profileImage: updatedData.profileImage,
+        profileImage: updatedData.profileImage, // ใช้รูปใหม่ที่ผ่านการบีบอัดมาจากไดอะล็อกเรียบร้อยแล้ว
       };
 
+      // 🟢 ใช้ POST เพื่อส่งเข้าประตูหลักของ API หลังบ้านคุณ
       const res = await fetch("/api/salary-settings", {
-        method: "PUT", 
+        method: "POST", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalPayload),
       });
@@ -55,6 +59,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     },
     onSuccess: () => {
       alert("🎉 บันทึกข้อมูลลงฐานข้อมูลสำเร็จแล้ว!");
+      // รีเฟรชข้อมูลให้แสดงผลชื่อและรูปภาพล่าสุดทันทีแบบ Realtime ทั่วทั้งแอป
       queryClient.invalidateQueries({ queryKey: ["/api/salary-settings"] });
     },
     onError: (error) => {
@@ -113,7 +118,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
-          </SheetTrigger> {/* 🟢 ซ่อมเสร็จแล้ว: เปลี่ยนกลับเป็น SheetTrigger เรียบร้อยครับ */}
+          </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <div className="flex h-14 items-center border-b px-4">
               <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
