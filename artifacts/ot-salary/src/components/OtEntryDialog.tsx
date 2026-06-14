@@ -81,7 +81,7 @@ export default function OtEntryDialog({ open, onOpenChange, entryToEdit }: Props
         note: entryToEdit.note || "",
       });
     } else if (open && !entryToEdit) {
-      form.reset({ date: new Date().toISOString().split("T")[0], hours: 1, otType: "D", note: "" });
+      form.reset({ date: new Date().toISOString().split("T")[0], hours: undefined, otType: "undefined", note: "" });
     }
   }, [open, entryToEdit, form]);
 
