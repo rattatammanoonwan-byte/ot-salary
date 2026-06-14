@@ -10,7 +10,7 @@ const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use("/auth", authRouter);
-router.use("/salary-settings", settingsRouter);
+router.use("/settings", settingsRouter);
 router.use("/ot-entries", otEntriesRouter);
 router.use("/summary", summaryRouter);
 router.use("/shifts", shiftsRouter);
