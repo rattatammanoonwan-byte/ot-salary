@@ -228,6 +228,20 @@ components:
         workingDaysPerMonth:
           type: number
           description: Standard working days per month (e.g. 26)
+        transportAllowance:
+          type: number
+        mealAllowance:
+          type: number
+        otMealAllowance:
+          type: number
+        diligenceAllowance:
+          type: number
+        shiftAllowance:
+          type: number
+        extraAllowance:
+          type: number
+        bonusAllowance:
+          type: number
         updatedAt:
           type: string
       required:
@@ -249,6 +263,20 @@ components:
         hoursPerDay:
           type: number
         workingDaysPerMonth:
+          type: number
+        transportAllowance:
+          type: number
+        mealAllowance:
+          type: number
+        otMealAllowance:
+          type: number
+        diligenceAllowance:
+          type: number
+        shiftAllowance:
+          type: number
+        extraAllowance:
+          type: number
+        bonusAllowance:
           type: number
       required:
         - baseSalary
