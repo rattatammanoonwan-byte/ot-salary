@@ -39,15 +39,46 @@ export function UserProfileDialog({ isOpen, onClose, defaultData, onSave }: User
     }
   }, [defaultData, form]);
 
-  // ฟังก์ชันแปลงรูปภาพเป็น Base64 string เพื่อส่งไปเซฟในฐานข้อมูล
+  // 📸 ฟังก์ชันเวอร์ชันอัปเกรด: ย่อขนาดและบีบอัดรูปภาพอัตโนมัติก่อนส่งไปเซฟ กันปัญหา Payload Too Large
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setPreviewImage(base64String);
-        form.setValue("profileImage", base64String);
+        const img = new Image();
+        img.src = reader.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 400;  // กำหนดความกว้างสูงสุด 400px (เพียงพอสำหรับรูป avatar เล็กๆ)
+          const MAX_HEIGHT = 400; // กำหนดความสูงสูงสุด 400px
+          let width = img.width;
+          let height = img.height;
+
+          // คำนวณอัตราส่วน (Aspect Ratio) เพื่อไม่ให้รูปเบี้ยว
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // บีบอัดรูปภาพให้เป็นฟอร์แมต jpeg และลดคุณภาพเหลือ 70% (0.7) เพื่อลดขนาดไฟล์ให้เบาที่สุด
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+          
+          setPreviewImage(compressedBase64);
+          form.setValue("profileImage", compressedBase64);
+        };
       };
       reader.readAsDataURL(file);
     }
