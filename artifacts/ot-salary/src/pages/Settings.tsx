@@ -229,7 +229,7 @@ export default function Settings() {
                       <FormField control={form.control} name="extraAllowance"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>เบี้ยเลี้ยงพิเศษ</FormLabel>
+                          <FormLabel>รางวัลพิเศษ</FormLabel>
                           <FormControl><Input type="number" {...field} /></FormControl>
                           <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
                           <FormMessage />
@@ -239,7 +239,7 @@ export default function Settings() {
                       <FormField control={form.control} name="bonusAllowance"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>โบนัสเบี้ยเลี้ยง</FormLabel>
+                          <FormLabel>โบนัสสิ้นปี</FormLabel>
                           <FormControl><Input type="number" {...field} /></FormControl>
                           <FormDescription>รวมเข้าเงินเดือนสุทธิได้เลย</FormDescription>
                           <FormMessage />
