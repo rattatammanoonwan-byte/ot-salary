@@ -9,17 +9,30 @@ export interface HealthStatus {
   status: string;
 }
 
+export type SalarySettingsEmployeeType = typeof SalarySettingsEmployeeType[keyof typeof SalarySettingsEmployeeType];
+export const SalarySettingsEmployeeType = {
+  monthly: 'monthly',
+  daily: 'daily',
+} as const;
+
 export interface SalarySettings {
   id: number;
   userId: string;
-  /** Monthly base salary in THB */
   baseSalary: number;
-  /** OT rate multiplier (e.g. 1.5 or 3.0) */
   otRate: number;
-  /** Standard working hours per day (e.g. 8) */
   hoursPerDay: number;
-  /** Standard working days per month (e.g. 26) */
   workingDaysPerMonth: number;
+  employeeType: SalarySettingsEmployeeType;
+  transportAllowance?: number;
+  mealAllowance?: number;
+  otMealAllowance?: number;
+  diligenceAllowance?: number;
+  shiftAllowance?: number;
+  extraAllowance?: number;
+  bonusAllowance?: number;
+  employmentStartDate?: string | null;
+  fullName?: string | null;
+  profileImage?: string | null;
   updatedAt: string;
 }
 
@@ -28,20 +41,27 @@ export interface SalarySettingsInput {
   otRate: number;
   hoursPerDay: number;
   workingDaysPerMonth: number;
+  employeeType?: SalarySettingsEmployeeType;
+  transportAllowance?: number;
+  mealAllowance?: number;
+  otMealAllowance?: number;
+  diligenceAllowance?: number;
+  shiftAllowance?: number;
+  extraAllowance?: number;
+  bonusAllowance?: number;
+  employmentStartDate?: string | null;
+  fullName?: string | null;
+  profileImage?: string | null;
 }
 
 export interface OtEntry {
   id: number;
   userId: string;
-  /** Date of OT (YYYY-MM-DD) */
   date: string;
-  /** Number of OT hours */
   hours: number;
-  /** Type: weekday, weekend, holiday */
   otType: string;
   /** @nullable */
   note?: string | null;
-  /** Calculated OT pay for this entry */
   otPay: number;
   createdAt: string;
 }
@@ -83,23 +103,13 @@ export interface YearlySummary {
 }
 
 export type ListOtEntriesParams = {
-/**
- * Filter by month (YYYY-MM)
- */
-month?: string;
+  month?: string;
 };
 
 export type GetMonthlySummaryParams = {
-/**
- * Month to summarize (YYYY-MM)
- */
-month: string;
+  month: string;
 };
 
 export type GetYearlySummaryParams = {
-/**
- * Year (YYYY)
- */
-year: string;
+  year: string;
 };
-
