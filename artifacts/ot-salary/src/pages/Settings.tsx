@@ -174,56 +174,56 @@ export default function Settings() {
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="baseSalary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
-                      <FormControl><Input type="number" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid gap-4 sm:grid-cols-2">
 
-                <FormField
-  control={form.control}
-  name="employeeType"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>ประเภทพนักงาน</FormLabel>
-
-      <Select
-        onValueChange={field.onChange}
-        value={field.value}
-      >
+  <FormField
+    control={form.control}
+    name="baseSalary"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>ฐานเงินเดือน (บาท)</FormLabel>
         <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="เลือกประเภทพนักงาน" />
-          </SelectTrigger>
+          <Input type="number" {...field} />
         </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
 
-        <SelectContent>
-          <SelectItem value="monthly">
-            พนักงานรายเดือน
-          </SelectItem>
+  <FormField
+    control={form.control}
+    name="employeeType"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>ประเภทพนักงาน</FormLabel>
 
-          <SelectItem value="daily">
-            พนักงานรายวัน
-          </SelectItem>
-        </SelectContent>
-      </Select>
+        <Select
+          onValueChange={field.onChange}
+          value={field.value}
+        >
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="เลือกประเภทพนักงาน" />
+            </SelectTrigger>
+          </FormControl>
 
-      <FormDescription>
-        รายเดือน: OT วันหยุด 8 ชม.แรก ×1
-        <br />
-        รายวัน: OT วันหยุด 8 ชม.แรก ×2
-      </FormDescription>
+          <SelectContent>
+            <SelectItem value="monthly">
+              พนักงานรายเดือน
+            </SelectItem>
 
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+            <SelectItem value="daily">
+              พนักงานรายวัน
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+
+</div>
 
 
 
