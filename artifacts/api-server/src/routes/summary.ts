@@ -31,9 +31,10 @@ async function buildMonthlySummary(
     shiftAllowance: number;
     extraAllowance: number;
     bonusAllowance: number;
+    employeeType: "monthly" | "daily";
   }
 ) {
-  const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance, extraAllowance, bonusAllowance } = settings;
+  const { baseSalary, transportAllowance, mealAllowance, otMealAllowance, diligenceAllowance, shiftAllowance, extraAllowance, bonusAllowance,employeeType, } = settings;
   const { start, end, payDate } = payPeriodRange(month);
 
   // ดึงข้อมูล OT entries
@@ -66,6 +67,10 @@ async function buildMonthlySummary(
   
   // ฐานคิดชั่วโมงการทำงานปกติ (เงินเดือน / 30 วัน / 8 ชั่วโมง)
   const hourlyRate = baseSalary / 30 / 8;
+  const holidayFirst8Multiplier =
+  employeeType === "daily"
+    ? 2
+    : 1;
 
   let totalOtHours = 0;
   let totalOtPay = 0;
@@ -85,8 +90,8 @@ async function buildMonthlySummary(
       const ex = Math.max(0, r.hours - 8);
       holidayBase8Hours += b8;
       
-      // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท
-      holidayBase8Pay   += b8 * hourlyRate * 1; 
+      // 📌 จุดแก้ไข: ปรับตัวคูณของ 8 ชม. แรกในวันหยุดตามนโยบายบริษัท แก้รายวัน/รายเดือน
+      holidayBase8Pay += b8 * hourlyRate * holidayFirst8Multiplier; 
       
       holidayExtraHours += ex;
       holidayExtraPay   += ex * 3 * hourlyRate; // โอทีเกิน 8 ชม. วันหยุด คิด 3 เท่าตามกฎหมาย
@@ -181,6 +186,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     shiftAllowance:      s?.shiftAllowance ?? 0,
     extraAllowance:      s?.extraAllowance ?? 0,
     bonusAllowance:      s?.bonusAllowance ?? 0,
+    employeeType:        s?.employeeType ?? "monthly",
   };
 
   const summary = await buildMonthlySummary(userId, month, settings);
@@ -208,6 +214,7 @@ router.get("/yearly", async (req: AuthRequest, res: Response) => {
     shiftAllowance:      s?.shiftAllowance ?? 0,
     extraAllowance:      s?.extraAllowance ?? 0,
     bonusAllowance:      s?.bonusAllowance ?? 0,
+    employeeType:        s?.employeeType ?? "monthly",อ
   };
 
   const months = Array.from({ length: 12 }, (_, i) => {
