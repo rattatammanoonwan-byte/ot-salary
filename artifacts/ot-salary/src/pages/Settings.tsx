@@ -17,6 +17,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Save, CalendarDays } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -29,10 +36,13 @@ function authHeaders() {
 }
 
 const formSchema = z.object({
+  employeeType: z.enum(["monthly", "daily"]).default("monthly"),
+
   baseSalary: z.coerce.number().min(0, "เงินเดือนต้องไม่ติดลบ"),
   otRate: z.coerce.number().default(1.5),
   hoursPerDay: z.coerce.number().default(8),
   workingDaysPerMonth: z.coerce.number().default(30),
+
   transportAllowance: z.coerce.number().min(0).default(0),
   mealAllowance: z.coerce.number().min(0).default(0),
   otMealAllowance: z.coerce.number().min(0).default(0),
@@ -54,18 +64,21 @@ export default function Settings() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      baseSalary: 15000,
-      otRate: 1.5,
-      hoursPerDay: 8,
-      workingDaysPerMonth: 30,
-      transportAllowance: 0,
-      mealAllowance: 0,
-      otMealAllowance: 0,
-      diligenceAllowance: 0,
-      shiftAllowance: 0,
-      extraAllowance: 0,
-      bonusAllowance: 0,
-    },
+  employeeType: "monthly",
+
+  baseSalary:15000,
+  otRate:1.5,
+  hoursPerDay:8,
+  workingDaysPerMonth:30,
+
+  transportAllowance:0,
+  mealAllowance:0,
+  otMealAllowance:0,
+  diligenceAllowance:0,
+  shiftAllowance:0,
+  extraAllowance:0,
+  bonusAllowance:0,
+},
   });
 
   useEffect(() => {
@@ -82,6 +95,7 @@ export default function Settings() {
         shiftAllowance: (settings as any).shiftAllowance ?? 0,
         extraAllowance: (settings as any).extraAllowance ?? 0,
         bonusAllowance: (settings as any).bonusAllowance ?? 0,
+        employeeType: (settings as any).employeeType ?? "monthly",
       });
       const s = settings as any;
       if (s.employmentStartDate) setStartDate(s.employmentStartDate);
@@ -171,6 +185,47 @@ export default function Settings() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+  control={form.control}
+  name="employeeType"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>ประเภทพนักงาน</FormLabel>
+
+      <Select
+        onValueChange={field.onChange}
+        value={field.value}
+      >
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="เลือกประเภทพนักงาน" />
+          </SelectTrigger>
+        </FormControl>
+
+        <SelectContent>
+          <SelectItem value="monthly">
+            พนักงานรายเดือน
+          </SelectItem>
+
+          <SelectItem value="daily">
+            พนักงานรายวัน
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <FormDescription>
+        รายเดือน: OT วันหยุด 8 ชม.แรก ×1
+        <br />
+        รายวัน: OT วันหยุด 8 ชม.แรก ×2
+      </FormDescription>
+
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
+
 
                 {/* สวัสดิการ */}
                 <div className="pt-2 border-t">
