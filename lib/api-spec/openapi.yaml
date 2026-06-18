@@ -242,6 +242,11 @@ components:
           type: number
         bonusAllowance:
           type: number
+        employeeType:
+          type: string
+          enum:
+          - monthly
+          - daily
         updatedAt:
           type: string
       required:
@@ -278,6 +283,12 @@ components:
           type: number
         bonusAllowance:
           type: number
+        employeeType:
+          type: string
+          enum:
+          - monthly
+          - daily
+
       required:
         - baseSalary
         - otRate
