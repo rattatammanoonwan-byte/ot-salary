@@ -174,7 +174,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between py-2 border-b">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                  <span className="text-muted-foreground">วันหยุดพิเศษ (8ชม.แรก) รายเดือน×1.0 / รายเดือน×2.0</span>
+                  <span className="text-muted-foreground">วันหยุดพิเศษ (8ชม.แรก) รายเดือน×1.0 / รายวัน×2.0</span>
                 </div>
                 <div className="flex items-center gap-6 text-right">
                   <span className="text-muted-foreground w-16">{s?.holidayBase8Hours || 0} ชม.</span>
