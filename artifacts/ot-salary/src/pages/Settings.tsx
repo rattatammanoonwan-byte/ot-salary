@@ -95,7 +95,7 @@ export default function Settings() {
         shiftAllowance: (settings as any).shiftAllowance ?? 0,
         extraAllowance: (settings as any).extraAllowance ?? 0,
         bonusAllowance: (settings as any).bonusAllowance ?? 0,
-        employeeType: (settings as any).employeeType ?? "monthly",
+        employeeType: settings.employeeType,
       });
       const s = settings as any;
       if (s.employmentStartDate) setStartDate(s.employmentStartDate);
