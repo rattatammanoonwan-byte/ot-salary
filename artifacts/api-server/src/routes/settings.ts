@@ -12,6 +12,11 @@ const settingsInputSchema = z.object({
   fullName: z.string().max(200).nullable().optional(),
   profileImage: z.string().nullable().optional(),
 
+  employeeType: z.enum([
+  "monthly",
+  "daily"
+]).default("monthly"),
+
   baseSalary: z.number().min(0),
   otRate: z.number().min(0).default(1.5),
   hoursPerDay: z.number().min(0).default(8),
@@ -35,6 +40,8 @@ function formatRow(s: typeof salarySettingsTable.$inferSelect) {
 
     fullName: s.fullName ?? null,
     profileImage: s.profileImage ?? null,
+
+    employeeType: s.employeeType,
 
     baseSalary: s.baseSalary,
     otRate: s.otRate,
@@ -98,6 +105,8 @@ router.put("/", async (req: AuthRequest, res: Response) => {
     Object.entries({
       fullName: data.fullName,
       profileImage: data.profileImage,
+
+      employeeType: data.employeeType,
 
       baseSalary: data.baseSalary,
       otRate: data.otRate,
