@@ -138,6 +138,7 @@ export default function Settings() {
           shiftAllowance: currentValues.shiftAllowance,
           extraAllowance: currentValues.extraAllowance,
           bonusAllowance: currentValues.bonusAllowance,
+          employeeType: currentValues.employeeType,
           employmentStartDate: startDate || null,
         }),
       });
