@@ -201,9 +201,11 @@ export default function Settings() {
         <FormLabel>ประเภทพนักงาน</FormLabel>
 
         <Select
-          onValueChange={field.onChange}
-          value={field.value}
-        >
+  value={field.value}
+  onValueChange={(value)=>{
+      field.onChange(value)
+  }}
+>
           <FormControl>
             <SelectTrigger>
               <SelectValue placeholder="เลือกประเภทพนักงาน" />
