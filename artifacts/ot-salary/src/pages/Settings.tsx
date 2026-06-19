@@ -201,6 +201,7 @@ export default function Settings() {
         <FormLabel>ประเภทพนักงาน</FormLabel>
 
         <Select
+          key={field.value} 
           onValueChange={field.onChange}
           value={field.value}
         >
