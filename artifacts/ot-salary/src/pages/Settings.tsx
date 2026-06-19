@@ -60,6 +60,7 @@ export default function Settings() {
 
   const [startDate, setStartDate] = useState("");
   const [savingStartDate, setSavingStartDate] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
