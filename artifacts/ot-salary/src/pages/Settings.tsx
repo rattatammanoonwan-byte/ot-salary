@@ -60,7 +60,6 @@ export default function Settings() {
 
   const [startDate, setStartDate] = useState("");
   const [savingStartDate, setSavingStartDate] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,52 +81,28 @@ export default function Settings() {
 },
   });
 
- 
   useEffect(() => {
-  if (!settings || initialized) return;
-
-  form.reset({
-    baseSalary: settings.baseSalary,
-    otRate: settings.otRate,
-    hoursPerDay: settings.hoursPerDay,
-    workingDaysPerMonth: settings.workingDaysPerMonth,
-
-    transportAllowance:
-      (settings as any).transportAllowance ?? 0,
-
-    mealAllowance:
-      (settings as any).mealAllowance ?? 0,
-
-    otMealAllowance:
-      (settings as any).otMealAllowance ?? 0,
-
-    diligenceAllowance:
-      (settings as any).diligenceAllowance ?? 0,
-
-    shiftAllowance:
-      (settings as any).shiftAllowance ?? 0,
-
-    extraAllowance:
-      (settings as any).extraAllowance ?? 0,
-
-    bonusAllowance:
-      (settings as any).bonusAllowance ?? 0,
-
-    employeeType:
-      settings.employeeType === "daily"
-        ? "daily"
-        : "monthly",
-  });
-
-  const s = settings as any;
-
-  if (s.employmentStartDate) {
-    setStartDate(s.employmentStartDate);
-  }
-
-  setInitialized(true);
-
-}, [settings]);
+    if (settings) {
+      form.reset({
+        baseSalary: settings.baseSalary,
+        otRate: settings.otRate,
+        hoursPerDay: settings.hoursPerDay,
+        workingDaysPerMonth: settings.workingDaysPerMonth,
+        transportAllowance: (settings as any).transportAllowance ?? 0,
+        mealAllowance: (settings as any).mealAllowance ?? 0,
+        otMealAllowance: (settings as any).otMealAllowance ?? 0,
+        diligenceAllowance: (settings as any).diligenceAllowance ?? 0,
+        shiftAllowance: (settings as any).shiftAllowance ?? 0,
+        extraAllowance: (settings as any).extraAllowance ?? 0,
+        bonusAllowance: (settings as any).bonusAllowance ?? 0,
+        employeeType: settings.employeeType === "daily"
+          ? "daily" : "monthly",
+        
+      });
+      const s = settings as any;
+      if (s.employmentStartDate) setStartDate(s.employmentStartDate);
+    }
+  }, [settings, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     upsertMutation.mutate(
