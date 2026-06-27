@@ -7,11 +7,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { UserProfileDialog } from "../UserProfileDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileText } from "lucide-react"
 
 const NAV_ITEMS = [
   { href: "/calendar", label: "ตารางกะ", icon: CalendarDays },
   { href: "/dashboard", label: "ภาพรวม", icon: Home },
   { href: "/entries", label: "บันทึก OT", icon: List },
+  { href: "/salary-slips", label: "ประวัติสลิปเงินเดือน", icon: FileText },
   { href: "/settings", label: "ตั้งค่า", icon: SettingsIcon },
   { href: "#user-profile", label: "ข้อมูลผู้ใช้งาน", icon: User }, 
 ];

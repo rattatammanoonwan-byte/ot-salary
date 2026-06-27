@@ -5,6 +5,7 @@ import settingsRouter from "./settings";
 import otEntriesRouter from "./otEntries";
 import summaryRouter from "./summary";
 import shiftsRouter from "./shifts";
+import salarySlipsRouter from "./salarySlips";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use("/settings", settingsRouter);
 router.use("/ot-entries", otEntriesRouter);
 router.use("/summary", summaryRouter);
 router.use("/shifts", shiftsRouter);
+router.use("/salary-slips", salarySlipsRouter);
 
 export default router;

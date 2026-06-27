@@ -11,6 +11,7 @@ import NotFound from "./pages/not-found";
 import Login from "./pages/Login";
 import Calendar from "./pages/Calendar";
 import Shell from "./components/layout/Shell";
+import SalarySlips from "./pages/SalarySlips";
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -41,9 +42,9 @@ function AppRoutes() {
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
       </Route>
-      <Route path="/entries">
-        <ProtectedRoute component={Entries} />
-      </Route>
+      "<Route path=""/salary-slips"">
+        <ProtectedRoute component={SalarySlips} />
+      </Route>"
       <Route path="/settings">
         <ProtectedRoute component={Settings} />
       </Route>
