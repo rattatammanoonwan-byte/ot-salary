@@ -35,7 +35,7 @@ export default function SalarySlips() {
 
   const [formData, setFormData] = useState(emptyForm);
 
-  // เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธชเธฅเธดเธ
+  // โหลดข้อมูลสลิป
   const { data: slips = [], isLoading } = useQuery({
     queryKey: ["salary-slips"],
     enabled: !!token,
@@ -43,7 +43,7 @@ export default function SalarySlips() {
       const res = await fetch("/api/salary-slips", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเนเธกเนเธชเธณเน€เธฃเนเธ");
+      if (!res.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
       return res.json();
     },
   });
@@ -65,11 +65,11 @@ export default function SalarySlips() {
     setOpen(true);
   };
 
-  // เน€เธเธดเนเธกเธชเธฅเธดเธ
+  // เพิ่มสลิป
   const createSlipMutation = useMutation({
     mutationFn: async () => {
       if (!formData.month || !formData.payDate || !formData.salary) {
-        throw new Error("เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธเนเธญเธกเธนเธฅเนเธซเนเธเธฃเธ");
+        throw new Error("กรุณากรอกข้อมูลให้ครบ");
       }
       const res = await fetch("/api/salary-slips", {
         method: "POST",
@@ -79,7 +79,7 @@ export default function SalarySlips() {
         },
         body: JSON.stringify({ ...formData, salary: Number(formData.salary) }),
       });
-      if (!res.ok) throw new Error("เน€เธเธดเนเธกเธชเธฅเธดเธเธฅเนเธกเน€เธซเธฅเธง");
+      if (!res.ok) throw new Error("เพิ่มสลิปล้มเหลว");
       return res.json();
     },
     onSuccess: () => {
@@ -92,11 +92,11 @@ export default function SalarySlips() {
     },
   });
 
-  // เนเธเนเนเธเธชเธฅเธดเธ
+  // แก้ไขสลิป
   const updateSlipMutation = useMutation({
     mutationFn: async () => {
       if (!formData.month || !formData.payDate || !formData.salary) {
-        throw new Error("เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธเนเธญเธกเธนเธฅเนเธซเนเธเธฃเธ");
+        throw new Error("กรุณากรอกข้อมูลให้ครบ");
       }
       const res = await fetch(`/api/salary-slips/${slipToEdit!.id}`, {
         method: "PUT",
@@ -106,7 +106,7 @@ export default function SalarySlips() {
         },
         body: JSON.stringify({ ...formData, salary: Number(formData.salary) }),
       });
-      if (!res.ok) throw new Error("เนเธเนเนเธเธชเธฅเธดเธเธฅเนเธกเน€เธซเธฅเธง");
+      if (!res.ok) throw new Error("แก้ไขสลิปล้มเหลว");
       return res.json();
     },
     onSuccess: () => {
@@ -120,14 +120,14 @@ export default function SalarySlips() {
     },
   });
 
-  // เธฅเธเธชเธฅเธดเธ
+  // ลบสลิป
   const deleteSlipMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/salary-slips/${slipToDelete!.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("เธฅเธเธชเธฅเธดเธเธฅเนเธกเน€เธซเธฅเธง");
+      if (!res.ok) throw new Error("ลบสลิปล้มเหลว");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["salary-slips"] });
@@ -141,7 +141,7 @@ export default function SalarySlips() {
   const isPending = createSlipMutation.isPending || updateSlipMutation.isPending;
 
   if (isLoading) {
-    return <div>เธเธณเธฅเธฑเธเนเธซเธฅเธ”...</div>;
+    return <div>กำลังโหลด...</div>;
   }
 
   return (
@@ -149,19 +149,19 @@ export default function SalarySlips() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">เธเธฃเธฐเธงเธฑเธ•เธดเธชเธฅเธดเธเน€เธเธดเธเน€เธ”เธทเธญเธ</h1>
-          <p className="text-muted-foreground">เธ”เธนเธเธฃเธฐเธงเธฑเธ•เธดเน€เธเธดเธเน€เธ”เธทเธญเธเธขเนเธญเธเธซเธฅเธฑเธ</p>
+          <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
+          <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
         </div>
         <Button onClick={handleOpenAdd}>
           <Plus className="h-4 w-4 mr-2" />
-          เน€เธเธดเนเธกเธชเธฅเธดเธ
+          เพิ่มสลิป
         </Button>
       </div>
 
       {slips.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            เธขเธฑเธเนเธกเนเธกเธตเธชเธฅเธดเธเน€เธเธดเธเน€เธ”เธทเธญเธ
+            ยังไม่มีสลิปเงินเดือน
           </CardContent>
         </Card>
       ) : (
@@ -172,9 +172,9 @@ export default function SalarySlips() {
               <div>
                 <h2 className="font-semibold">{slip.month}</h2>
                 <p className="text-sm text-muted-foreground">
-                  เธงเธฑเธเธ—เธตเนเน€เธเธดเธเน€เธเนเธฒ : {slip.payDate}
+                  วันที่เงินเข้า : {slip.payDate}
                 </p>
-                <p>เน€เธเธดเธเธชเธธเธ—เธเธด : {slip.salary} เธเธฒเธ—</p>
+                <p>เงินสุทธิ : {slip.salary} บาท</p>
               </div>
 
               <div className="flex gap-2">
@@ -200,7 +200,7 @@ export default function SalarySlips() {
                   onClick={() => window.open(slip.pdfUrl, "_blank")}
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  เธ”เธน PDF
+                  ดู PDF
                 </Button>
               </div>
 
@@ -209,18 +209,18 @@ export default function SalarySlips() {
         ))
       )}
 
-      {/* Dialog เน€เธเธดเนเธก / เนเธเนเนเธ */}
+      {/* Dialog เพิ่ม / แก้ไข */}
       <Dialog open={open} onOpenChange={(o) => { if (!o) { setOpen(false); setSlipToEdit(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {slipToEdit ? "เนเธเนเนเธเธชเธฅเธดเธเน€เธเธดเธเน€เธ”เธทเธญเธ" : "เน€เธเธดเนเธกเธชเธฅเธดเธเน€เธเธดเธเน€เธ”เธทเธญเธ"}
+              {slipToEdit ? "แก้ไขสลิปเงินเดือน" : "เพิ่มสลิปเงินเดือน"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3">
             <Input
-              placeholder="เน€เธ”เธทเธญเธ เน€เธเนเธ เธกเธดเธ–เธธเธเธฒเธขเธ 2569"
+              placeholder="เดือน เช่น มิถุนายน 2569"
               value={formData.month}
               onChange={(e) => setFormData({ ...formData, month: e.target.value })}
             />
@@ -230,7 +230,7 @@ export default function SalarySlips() {
               onChange={(e) => setFormData({ ...formData, payDate: e.target.value })}
             />
             <Input
-              placeholder="เน€เธเธดเธเธชเธธเธ—เธเธด"
+              placeholder="เงินสุทธิ"
               type="number"
               value={formData.salary}
               onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
@@ -249,28 +249,28 @@ export default function SalarySlips() {
                   : createSlipMutation.mutate()
               }
             >
-              {isPending ? "เธเธณเธฅเธฑเธเธเธฑเธเธ—เธถเธ..." : "เธเธฑเธเธ—เธถเธ"}
+              {isPending ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog เธขเธทเธเธขเธฑเธเธฅเธ */}
+      {/* AlertDialog ยืนยันลบ */}
       <AlertDialog open={!!slipToDelete} onOpenChange={(o) => !o && setSlipToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>เธขเธทเธเธขเธฑเธเธเธฒเธฃเธฅเธ?</AlertDialogTitle>
+            <AlertDialogTitle>ยืนยันการลบ?</AlertDialogTitle>
             <AlertDialogDescription>
-              เธชเธฅเธดเธเน€เธ”เธทเธญเธ {slipToDelete?.month} เธเธฐเธ–เธนเธเธฅเธเธญเธขเนเธฒเธเธ–เธฒเธงเธฃเนเธฅเธฐเนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธนเนเธเธทเธเนเธ”เน
+              สลิปเดือน {slipToDelete?.month} จะถูกลบอย่างถาวรและไม่สามารถกู้คืนได้
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>เธขเธเน€เธฅเธดเธ</AlertDialogCancel>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteSlipMutation.mutate()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              เธฅเธเธฃเธฒเธขเธเธฒเธฃ
+              ลบรายการ
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -278,4 +278,4 @@ export default function SalarySlips() {
 
     </div>
   );
-}"
+}

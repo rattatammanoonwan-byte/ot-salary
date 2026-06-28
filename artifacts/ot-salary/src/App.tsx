@@ -42,9 +42,9 @@ function AppRoutes() {
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
       </Route>
-      "<Route path=""/salary-slips"">
+      "<Route path="/salary-slips">
         <ProtectedRoute component={SalarySlips} />
-      </Route>"
+      </Route>
       <Route path="/settings">
         <ProtectedRoute component={Settings} />
       </Route>
