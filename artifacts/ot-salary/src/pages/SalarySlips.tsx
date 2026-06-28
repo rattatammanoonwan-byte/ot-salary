@@ -149,16 +149,15 @@ export default function SalarySlips() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
-          <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
-        </div>
-        <div className="flex items-center gap-2">
-            <img 
+           <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1><img 
             src="https://adaymagazine.com/wp-content/uploads/2019/05/Knocking.gif" 
             alt="nyan cat"
             className="w-10 h-10"
             />
           </div>
+          <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
+        </div>
         <Button onClick={handleOpenAdd}>
           <Plus className="h-4 w-4 mr-2" />
           เพิ่มสลิป
@@ -176,14 +175,17 @@ export default function SalarySlips() {
           <Card key={slip.id}>
             <CardContent className="p-5 flex justify-between items-center">
 
-            <h2 className="font-semibold">{slip.month}</h2>
-            <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col gap-1">
+              <h2 className="font-semibold">{slip.month}</h2>
+              <p className="text-sm text-muted-foreground">
                วันที่เงินเข้า : {new Date(slip.payDate).toLocaleDateString("th-TH", {
                day: "numeric",
-               month: "long", 
-               year: "numeric"})}
-            </p>
-            <p>เงินสุทธิ : {Number(slip.salary).toLocaleString("th-TH")} บาท</p>
+               month: "long",
+               year: "numeric"
+              })}
+              </p>
+              <p className="text-sm">เงินสุทธิ : {Number(slip.salary).toLocaleString("th-TH")} บาท</p>
+            </div>
 
               <div className="flex gap-2">
                 <Button
