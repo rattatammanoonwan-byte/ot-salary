@@ -169,6 +169,7 @@ export default function SalarySlips() {
           <Card key={slip.id}>
             <CardContent className="p-5 flex justify-between items-center">
 
+            <h2 className="font-semibold">{slip.month}</h2>
             <p className="text-sm text-muted-foreground">
                วันที่เงินเข้า : {new Date(slip.payDate).toLocaleDateString("th-TH", {
                day: "numeric",
