@@ -149,7 +149,14 @@ export default function SalarySlips() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
+            <img 
+            src="https://www.beartai.com/wp-content/uploads/2014/06/poptart1red1.gif" 
+            alt="nyan cat"
+            className="w-10 h-10"
+            />
+          </div>
           <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
         </div>
         <Button onClick={handleOpenAdd}>
