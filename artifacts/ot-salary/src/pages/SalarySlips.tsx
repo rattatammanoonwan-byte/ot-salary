@@ -149,16 +149,16 @@ export default function SalarySlips() {
 
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
-            <img 
-            src="https://i.pinimg.com/originals/4e/a5/b4/4ea5b428b435de5bca078b2d5f62d6f6.gif" 
-            alt="nyan cat"
-            className="w-30 h-30"
-            />
-          </div>
+          <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
           <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
         </div>
+        <div className="flex items-center gap-2">
+            <img 
+            src="https://adaymagazine.com/wp-content/uploads/2019/05/Knocking.gif" 
+            alt="nyan cat"
+            className="w-10 h-10"
+            />
+          </div>
         <Button onClick={handleOpenAdd}>
           <Plus className="h-4 w-4 mr-2" />
           เพิ่มสลิป
