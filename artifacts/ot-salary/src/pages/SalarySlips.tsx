@@ -169,13 +169,13 @@ export default function SalarySlips() {
           <Card key={slip.id}>
             <CardContent className="p-5 flex justify-between items-center">
 
-              <div>
-                <h2 className="font-semibold">{slip.month}</h2>
-                <p className="text-sm text-muted-foreground">
-                  วันที่เงินเข้า : {slip.payDate}
-                </p>
-                <p>เงินสุทธิ : {slip.salary} บาท</p>
-              </div>
+            <p className="text-sm text-muted-foreground">
+               วันที่เงินเข้า : {new Date(slip.payDate).toLocaleDateString("th-TH", {
+               day: "numeric",
+               month: "long", 
+               year: "numeric"})}
+            </p>
+            <p>เงินสุทธิ : {Number(slip.salary).toLocaleString("th-TH")} บาท</p>
 
               <div className="flex gap-2">
                 <Button
