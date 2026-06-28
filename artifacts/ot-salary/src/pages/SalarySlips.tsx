@@ -187,32 +187,34 @@ export default function SalarySlips() {
               <p className="text-sm">เงินสุทธิ : {Number(slip.salary).toLocaleString("th-TH")} บาท</p>
             </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleOpenEdit(slip)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+              <div className="flex flex-col gap-2 items-end">
+               <div className="flex gap-2">
+                 <Button
+                   variant="outline"
+                   size="icon"
+                   onClick={() => handleOpenEdit(slip)}
+                   >
+                   <Pencil className="h-4 w-4" />
+                 </Button>
 
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => setSlipToDelete(slip)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                 <Button
+                   variant="outline"
+                   size="icon"
+                   className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                   onClick={() => setSlipToDelete(slip)}
+                    >
+                   <Trash2 className="h-4 w-4" />
+                 </Button>
+               </div>
 
-                <Button
-                  disabled={!slip.pdfUrl}
-                  onClick={() => window.open(slip.pdfUrl, "_blank")}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  ดู PDF
-                </Button>
-              </div>
+                 <Button
+                   disabled={!slip.pdfUrl}
+                   onClick={() => window.open(slip.pdfUrl, "_blank")}
+                   >
+                   <FileText className="mr-2 h-4 w-4" />
+                    ดู PDF
+                 </Button>
+               </div>
 
             </CardContent>
           </Card>
