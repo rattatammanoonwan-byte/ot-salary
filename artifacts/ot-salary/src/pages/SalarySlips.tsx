@@ -148,20 +148,21 @@ export default function SalarySlips() {
     <div className="space-y-6">
 
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>   
-        </div>
-        <div className="flex items-center gap-2">
-            <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p><img 
+       <div>
+         <h1 className="text-3xl font-bold">ประวัติสลิปเงินเดือน</h1>
+           <div className="flex items-center gap-2 mt-1">
+            <p className="text-muted-foreground">ดูประวัติเงินเดือนย้อนหลัง</p>
+            <img 
             src="https://adaymagazine.com/wp-content/uploads/2019/05/Knocking.gif" 
             alt="nyan cat"
             className="w-10 h-10"
             />
-        </div>
-        <Button onClick={handleOpenAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          เพิ่มสลิป
-        </Button>
+          </div>
+         </div>
+       <Button onClick={handleOpenAdd}>
+         <Plus className="h-4 w-4 mr-2" />
+         เพิ่มสลิป
+       </Button>
       </div>
 
       {slips.length === 0 ? (
