@@ -17,6 +17,32 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { getCurrentPayMonth, getPayPeriod, payPeriodLabel, thaiShortDate } from "@/lib/payPeriod";
 import { formatOtType } from "@/lib/format";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+
+{/* ฟีเจอร์คำนวนอายุงาน */}
+function getWorkDuration(startDate?: string) {
+  if (!startDate) return null;
+  const start = new Date(startDate);
+  const today = new Date();
+  if (isNaN(start.getTime()) || start > today) return null;
+
+  let years = today.getFullYear() - start.getFullYear();
+  let months = today.getMonth() - start.getMonth();
+  let days = today.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return `${years} ปี ${months} เดือน ${days} วัน`;
+}
 
 export default function Dashboard() {
   const defaultPayMonth = getCurrentPayMonth();
@@ -24,6 +50,21 @@ export default function Dashboard() {
 
   const [selectedMonth, setSelectedMonth] = useState(defaultPayMonth);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const { token } = useAuth();
+const { data: profile } = useQuery<any>({
+  queryKey: ["/api/settings", token],
+  enabled: !!token,
+  queryFn: async () => {
+    const res = await fetch("/api/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  },
+});
+
+const workDuration = getWorkDuration(profile?.employmentStartDate);
 
   const period = getPayPeriod(selectedMonth);
 
@@ -55,16 +96,22 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">สรุปข้อมูลเงินเดือนและโอทีของคุณ</p>
         </div>
         <div className="flex items-center gap-2">
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" /> <span>บันทึก OT</span>
-          </Button>
-        </div>
+          {workDuration && (
+            <div className="flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground whitespace-nowrap">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              <span>อายุงาน: <span className="font-medium text-foreground">{workDuration}</span></span>
+            </div>
+           )}
+           <input
+             type="month"
+             value={selectedMonth}
+             onChange={(e) => setSelectedMonth(e.target.value)}
+             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+           />
+           <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+             <Plus className="h-4 w-4" /> <span>บันทึก OT</span>
+           </Button>
+         </div>
       </div>
 
       {/* Pay period banner */}
